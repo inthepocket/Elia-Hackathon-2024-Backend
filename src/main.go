@@ -17,10 +17,6 @@ func handlerFunc(w http.ResponseWriter, _ *http.Request) {
 func main() {
 	accessToken := GetAccessToken()
 
-	sessionsToday := getAssetSessionsForDay(accessToken, "541983310278725782", "2024-01-10")
-
-	log.Println(sessionsToday)
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", handlerFunc)
 
@@ -30,10 +26,10 @@ func main() {
 		// Parse the query parameters
 		query := r.URL.Query()
 		ean := query.Get("ean")
-		date := query.Get("date")
+		realTime := query.Get("realTime")
 
 		// Get the asset sessions for the specified day
-		sessions := getAssetSessionsForDay(accessToken, ean, date)
+		sessions := getAssetSessionsForDay(accessToken, ean, realTime)
 
 		// Write the response
 		w.Header().Set("Content-Type", "application/json")

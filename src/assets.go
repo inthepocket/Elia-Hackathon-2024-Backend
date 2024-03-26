@@ -62,42 +62,41 @@ type Session struct {
 	EndState   *AssetState `json:"endState"`
 }
 
-func getAssetSessionsForDay(token, ean, date string) []Session {
+func getAssetSessionsForDay(token, ean, realTime string) []Session {
+	hackathonTime := getHackathonTime(token, realTime)
+
 	var sessions []Session
 	var startState, endState *AssetState
 
 	// Parse the date string into a time.Time
-	parsedDate, err := time.Parse("2006-01-02", date)
+	parsedDate, err := time.Parse(time.RFC3339, hackathonTime)
 	if err != nil {
 		log.Fatal("Error parsing date: ", err.Error())
 	}
 
 	// Start and end of the day
-	startOfDay := parsedDate.Format("2006-01-02T15:04:05Z")
-	endOfDay := parsedDate.Add(24 * time.Hour).Format("2006-01-02T15:04:05Z")
+	startOfDay := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, parsedDate.Location()).Format(time.RFC3339)
+	endOfDay := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 0, parsedDate.Location()).Format(time.RFC3339)
 
 	// Get the historic asset states for the specified date
 	assetStates := getHistoricAssetStates(token, ean, startOfDay, endOfDay)
 
 	for _, state := range assetStates {
-		// Parse the state's timestamp
-		stateTime, err := time.Parse(time.RFC3339, state.StateTime)
+
 		if err != nil {
 			log.Fatal("Error parsing timestamp: ", err.Error())
 		}
 
-		// Check if the state is within the day
-		if stateTime.After(parsedDate) && stateTime.Before(parsedDate.Add(24*time.Hour)) {
-			if state.Connected && startState == nil {
-				// Start of a new session
-				startState = &state
-			} else if !state.Connected && startState != nil {
-				// End of the current session
-				endState = &state
-				sessions = append(sessions, Session{StartState: startState, EndState: endState})
-				startState, endState = nil, nil
-			}
+		if state.Connected && startState == nil {
+			// Start of a new session
+			startState = &state
+		} else if !state.Connected && startState != nil {
+			// End of the current session
+			endState = &state
+			sessions = append(sessions, Session{StartState: startState, EndState: endState})
+			startState, endState = nil, nil
 		}
+
 	}
 
 	// If there's an ongoing session at the end of the day, add it to the sessions
