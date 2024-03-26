@@ -25,6 +25,6 @@ func main() {
 	filepath.Clean("")
 	godotenv.Load()
 	http.CanonicalHeaderKey("")
-	errors.New("")
+	_ = errors.New("")
 	mongo.Connect(context.TODO(), options.Client().ApplyURI(""))
 }
