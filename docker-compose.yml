@@ -8,8 +8,6 @@ services:
     tty: true # colorized output
     ports:
       - 80:80
-    env_file:
-      - ./.env
   steering-python:
     network_mode: "host"
     build:

@@ -18,11 +18,15 @@ func handlerFunc(w http.ResponseWriter, _ *http.Request) {
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("/app/bin/.env"); err != nil {
 		log.Println("No .env file found")
 	}
 
-	// mongo := getMongoClient()
+	mongo := getMongoClient()
+
+	vehicles := getAllVehicles(mongo)
+
+	log.Println("Vehicles:", vehicles)
 
 	accessToken := GetAccessToken()
 
