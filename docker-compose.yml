@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  golang:
+    build:
+      context: ./golang/
+      dockerfile: ./Dockerfile
+    tty: true # colorized output
+  steering-python:
+    build:
+      context: ./steering-python/
+      dockerfile: ./Dockerfile
+    tty: true # colorized output
