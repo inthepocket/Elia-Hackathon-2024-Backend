@@ -19,18 +19,18 @@ func getCurrentHackathonTime(token string) string {
 
 	body, err := makeRequest("GET", "/times/HackathonTimeForNow", headers, nil)
 	if err != nil {
-		log.Fatal("Error on dispatching request. ", err.Error())
+		log.Println("Error on dispatching request. ", err.Error())
 	}
 
 	var hackathonTimeResponse HackathonTimeResponse
 	if err := json.Unmarshal(body, &hackathonTimeResponse); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	return hackathonTimeResponse.HackathonTime
 }
 
-func getHackathonTime(token, realTime string) string {
+func getHackathonTime(token, realTime string) (string, error) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
@@ -40,13 +40,13 @@ func getHackathonTime(token, realTime string) string {
 
 	body, err := makeRequest("GET", "/times/HackathonTimeForDateTime", headers, params)
 	if err != nil {
-		log.Fatal("Error on dispatching request. ", err.Error())
+		return "", err
 	}
 
 	var hackathonTimeResponse HackathonTimeResponse
 	if err := json.Unmarshal(body, &hackathonTimeResponse); err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
 
-	return hackathonTimeResponse.HackathonTime
+	return hackathonTimeResponse.HackathonTime, nil
 }
