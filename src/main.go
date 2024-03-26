@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -15,14 +16,31 @@ func handlerFunc(w http.ResponseWriter, _ *http.Request) {
 
 func main() {
 	accessToken := GetAccessToken()
-	assetStates := getHistoricAssetStates(accessToken, "541787622019220646", "2024-01-01T15:00:00Z", "2024-01-01T16:00:00Z")
 
-	log.Println(getHackathonTime(accessToken))
+	sessionsToday := getAssetSessionsForDay(accessToken, "541983310278725782", "2024-01-10")
 
-	log.Println(assetStates)
+	log.Println(sessionsToday)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", handlerFunc)
+
+	mux.HandleFunc("/sessions", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("received GET /sessions")
+
+		// Parse the query parameters
+		query := r.URL.Query()
+		ean := query.Get("ean")
+		date := query.Get("date")
+
+		// Get the asset sessions for the specified day
+		sessions := getAssetSessionsForDay(accessToken, ean, date)
+
+		// Write the response
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(sessions); err != nil {
+			log.Printf("Error encoding response: %s\n", err)
+		}
+	})
 
 	server := http.Server{
 		Addr:    ":80",
