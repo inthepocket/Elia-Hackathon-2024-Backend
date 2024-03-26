@@ -6,8 +6,15 @@ services:
       context: ./golang/
       dockerfile: ./Dockerfile
     tty: true # colorized output
+    ports:
+      - 80:80
+    env_file:
+      - ./.env
   steering-python:
+    network_mode: "host"
     build:
       context: ./steering-python/
       dockerfile: ./Dockerfile
     tty: true # colorized output
+    ports:
+      - 5001:5001
