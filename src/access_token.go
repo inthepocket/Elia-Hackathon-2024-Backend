@@ -20,9 +20,6 @@ func GetAccessToken() string {
 	clientID := os.Getenv("TRAXES_API_CLIENT_ID")
 	clientSecret := os.Getenv("TRAXES_API_CLIENT_SECRET")
 
-	log.Println("clientID: ", clientID)
-	log.Println("clientSecret: ", clientSecret)
-
 	if clientID == "" || clientSecret == "" || authUri == "" {
 		log.Fatalln("Environment variables TRAXES_CLIENT_ID and TRAXES_CLIENT_SECRET must be set")
 	}
