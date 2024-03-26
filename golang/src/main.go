@@ -3,9 +3,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -18,7 +21,14 @@ func handlerFunc(w http.ResponseWriter, _ *http.Request) {
 }
 
 func main() {
-	if err := godotenv.Load("/app/bin/.env"); err != nil {
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+	fmt.Println(exPath)
+
+	if err := godotenv.Load(exPath + "/.env"); err != nil {
 		log.Println("No .env file found")
 	}
 
