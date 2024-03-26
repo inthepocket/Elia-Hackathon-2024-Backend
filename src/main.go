@@ -4,16 +4,12 @@ import (
 	"errors"
 	"log"
 	"net/http"
-
-	"github.com/inthepocket/Elia-Hackathon-2024-Backend/internal/access_token"
 )
 
 func handlerFunc(w http.ResponseWriter, _ *http.Request) {
 	log.Println("received GET /hello")
 
-	var access_token = access_token.GetAccessToken()
-
-	w.Write([]byte(access_token))
+	w.Write([]byte("Hello, world!"))
 
 }
 
