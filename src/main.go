@@ -5,6 +5,9 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"net/url"
+
+	"github.com/joho/godotenv"
 )
 
 func handlerFunc(w http.ResponseWriter, _ *http.Request) {
@@ -15,6 +18,12 @@ func handlerFunc(w http.ResponseWriter, _ *http.Request) {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
+	// mongo := getMongoClient()
+
 	accessToken := GetAccessToken()
 
 	mux := http.NewServeMux()
@@ -27,6 +36,10 @@ func main() {
 		query := r.URL.Query()
 		ean := query.Get("ean")
 		realTime := query.Get("realTime")
+		realTime, err := url.QueryUnescape(realTime)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		// Get the asset sessions for the specified day
 		sessions := getAssetSessionsForDay(accessToken, ean, realTime)
