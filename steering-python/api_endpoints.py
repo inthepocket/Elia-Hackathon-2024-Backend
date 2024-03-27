@@ -36,7 +36,7 @@ async def calculate_roof_price_per_quarter(request: Request):
 
     body_dict = await request.json()
     
-    df = pd.json_normalize(body_dict.get("time_series_data"))
+    df = pd.json_normalize(body_dict.get("time_series_data").get("$values"))
 
     ev_comfort_charge_capacity_kwh = int(body_dict.get("ev_comfort_charge_capacity_kwh"))
     ev_max_charge_capacity_kwh = int(body_dict.get("ev_max_charge_capacity_kwh"))
@@ -47,45 +47,40 @@ async def calculate_roof_price_per_quarter(request: Request):
     
 
     ev_pmax = 22  # kW
-    ev_charged_per_quarter = ev_pmax / 4  # kWh
+    ev_charged_per_hour = ev_pmax  # kWh
 
 
-    ev_charging_quarters_count_comfort = ev_comfort_charge_capacity_kwh / ev_charged_per_quarter
-    ev_charging_quarters_count_max = ev_max_charge_capacity_kwh / ev_charged_per_quarter
+    ev_charging_hours_count_comfort = ev_comfort_charge_capacity_kwh / ev_charged_per_hour
+    ev_charging_hours_count_max = ev_max_charge_capacity_kwh / ev_charged_per_hour
+    total_hours_count = len(df)
+    ic(ev_charging_hours_count_comfort, ev_charging_hours_count_max, total_hours_count)
 
-    ic(ev_charging_quarters_count_comfort)
-    ic(ev_charging_quarters_count_max)
+    ic(ev_charging_hours_count_comfort / total_hours_count)
 
-    total_quarters_count = len(df)
+    percent_of_hours_needed_comfort = ev_charging_hours_count_comfort / total_hours_count
+    percent_of_hours_needed_max = ev_charging_hours_count_max / total_hours_count
+    ic(percent_of_hours_needed_comfort, percent_of_hours_needed_max)
 
-    percent_of_quarters_needed_comfort = ev_charging_quarters_count_comfort / total_quarters_count
-    percent_of_quarters_needed_max = ev_charging_quarters_count_max / total_quarters_count
+    percent_of_hours_needed_comfort = percent_of_hours_needed_comfort * (1 + buffer)
+    percent_of_hours_needed_max = percent_of_hours_needed_max * (1 + buffer)
+    ic(percent_of_hours_needed_comfort, percent_of_hours_needed_max)
 
-    ic(percent_of_quarters_needed_comfort, percent_of_quarters_needed_max)
-
-    # TODO this to be checked
-    percent_of_quarters_needed_comfort = percent_of_quarters_needed_comfort * (1 + buffer)
-    percent_of_quarters_needed_max = percent_of_quarters_needed_max * (1 + buffer)
-
-    ic(percent_of_quarters_needed_comfort, percent_of_quarters_needed_max)
-
-
-    df['is_in_lowest_quarters_comfort'] = df[price_column_name] <= df[price_column_name].quantile(percent_of_quarters_needed_comfort)
-    df['is_in_lowest_quarters_max'] = df[price_column_name] <= df[price_column_name].quantile(percent_of_quarters_needed_max)
+    df['is_in_lowest_hours_comfort'] = df[price_column_name] <= df[price_column_name].quantile(percent_of_hours_needed_comfort)
+    df['is_in_lowest_hours_max'] = df[price_column_name] <= df[price_column_name].quantile(percent_of_hours_needed_max)
 
     pd.set_option('display.max_rows', None)
     print(df)
 
-    highest_price_in_lowest_quarters_comfort = df[df['is_in_lowest_quarters_comfort']][price_column_name].max()
-    highest_price_in_lowest_quarters_max = df[df['is_in_lowest_quarters_max']][price_column_name].max()
+    highest_price_in_lowest_hours_comfort = df[df['is_in_lowest_hours_comfort']][price_column_name].max()
+    highest_price_in_lowest_hours_max = df[df['is_in_lowest_hours_max']][price_column_name].max()
 
     # TODO room for improvement here, it could be somewhere between highest_price_in_lowest_quarters_comfort
     #      (if that's below 0) and highest_price_in_lowest_quarters_max
-    if highest_price_in_lowest_quarters_max > 0:
-        highest_price_in_lowest_quarters_max = highest_price_in_lowest_quarters_comfort
+    if highest_price_in_lowest_hours_max > 0:
+        highest_price_in_lowest_hours_max = highest_price_in_lowest_hours_comfort
 
     return {
-        "roof_comfort": highest_price_in_lowest_quarters_comfort,
-        "roof_max": highest_price_in_lowest_quarters_max
+        "roof_comfort": highest_price_in_lowest_hours_comfort,
+        "roof_max": highest_price_in_lowest_hours_max
     }
 
