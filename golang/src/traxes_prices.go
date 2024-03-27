@@ -60,5 +60,5 @@ func getRealTimePrice(token string, realTime string) (float64, error) {
 
 	//log.Println(string(body))
 	price, _ := getLastPriceEstimate(string(body))
-	return price
+	return price, nil
 }
