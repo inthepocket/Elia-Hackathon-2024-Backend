@@ -77,6 +77,13 @@ async def calculate_roof_price_per_quarter(request: Request):
     highest_price_in_lowest_hours_comfort = df[df['is_in_lowest_hours_comfort']][price_column_name].max()
     highest_price_in_lowest_hours_max = df[df['is_in_lowest_hours_max']][price_column_name].max()
 
+    try:
+        last_hour_comfort = df[df['is_in_lowest_hours_comfort']].index[-1]
+        last_hour_max = df[df['is_in_lowest_hours_max']].index[-1]
+    except IndexError:
+        last_hour_comfort = 0
+        last_hour_max = 0
+
     # TODO room for improvement here, it could be somewhere between highest_price_in_lowest_quarters_comfort
     #      (if that's below 0) and highest_price_in_lowest_quarters_max
     if highest_price_in_lowest_hours_max > 0:
@@ -84,6 +91,8 @@ async def calculate_roof_price_per_quarter(request: Request):
 
     return {
         "roof_comfort": highest_price_in_lowest_hours_comfort,
-        "roof_max": highest_price_in_lowest_hours_max
+        "roof_max": highest_price_in_lowest_hours_max,
+        "last_hour_comfort": last_hour_comfort,
+        "last_hour_max": last_hour_max
     }
 
