@@ -77,6 +77,8 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 		return VehicleResponse{}, err
 	}
 
+	log.Println("Vehicle:", vehicle)
+
 	assetState, err := getCurrentAssetState(accessToken, ean)
 	if err != nil {
 		assetState = nil
@@ -101,10 +103,6 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 
 		sessions = append(sessions, assetSessions...)
 	}
-	// if err != nil {
-	// 	assetSessionsLast24h = []Session{}
-	// 	return
-	// }
 
 	vehicleResponse := VehicleResponse{
 		Metadata:          vehicle,
