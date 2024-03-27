@@ -29,7 +29,7 @@ func getActiveCars(token string) []Car {
 		log.Println("Error on dispatching request. ", err.Error())
 		return []Car{}
 	}
-	log.Println(string(body))
+	//log.Println(string(body))
 	//result := gjson.Get(string(body), "assets.*.#($AssetType==\"EV\")#.ean")
 	//log.Println(gjson.Get(string(body), "assets.*.ean"))
 	//log.Println(gjson.Get(string(body), "assets.#(\\$AssetType==\"EV\")#.ean"))
@@ -49,7 +49,6 @@ func getActiveCars(token string) []Car {
 		//log.Println(gjson.Get(value.Raw, "$AssetType"))
 		//log.Println(gjson.Get(value.Raw, "$AssetType").Str)
 		if gjson.Get(value.Raw, "$AssetType").Str != "EV" {
-			log.Println("not an EV")
 			return true
 		}
 

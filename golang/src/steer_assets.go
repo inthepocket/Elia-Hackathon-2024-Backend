@@ -68,16 +68,19 @@ func steerAssets(token string) {
 		log.Println("###", "Cars", cars)
 		for _, car := range cars {
 			//log.Println(car.consumptionKwSincePreviousTime, timeDiffSeconds(previousHackathonTime, currentHackathonTime), currentRealTimePrice)
-			reward := car.consumptionKwSincePreviousTime * float32(timeDiffSeconds(previousHackathonTime, currentHackathonTime)*currentRealTimePrice/1000/3600)
+			if currentRealTimePrice > 0 {
+				continue
+			}
+			reward := car.consumptionKwSincePreviousTime * float32(timeDiffSeconds(previousHackathonTime, currentHackathonTime)*currentRealTimePrice/1000/3600*-1)
 			log.Println(car.Ean, "Reward: ", reward)
 
 			var currentCarReward float32 = 0
 			if val, ok := carRewards[car.Ean]; ok {
 				currentCarReward = val
 			}
-			if reward < 0 {
-				panic("Negative reward")
-			}
+			//if reward < 0 {
+			//	panic("Negative reward")
+			//}
 			carRewards[car.Ean] = currentCarReward + reward*0.25
 		}
 
