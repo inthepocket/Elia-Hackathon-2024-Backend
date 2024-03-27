@@ -15,6 +15,7 @@ type HackathonTimeResponse struct {
 }
 
 func getCurrentHackathonTime(token string) (string, error) {
+	time.Sleep(80 * time.Millisecond)
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
@@ -24,6 +25,8 @@ func getCurrentHackathonTime(token string) (string, error) {
 		log.Println("Error on dispatching request. ", err.Error())
 		return "", err
 	}
+
+	log.Println(string(body))
 
 	var hackathonTimeResponse HackathonTimeResponse
 	if err := json.Unmarshal(body, &hackathonTimeResponse); err != nil {
@@ -105,6 +108,7 @@ func getNextDay(dateString string) string {
 }
 
 func getHackathonTime(token, realTime string) (string, error) {
+	time.Sleep(80 * time.Millisecond)
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}

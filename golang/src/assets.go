@@ -82,6 +82,11 @@ type Session struct {
 
 func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 	currentHackathonTime, err := getCurrentHackathonTime(token)
+	if err != nil {
+		log.Println("Error getting hackathon time: ", err.Error())
+		return nil, err
+	}
+
 	hackathonTime, err := getHackathonTime(token, realTime)
 
 	if err != nil {
@@ -109,7 +114,7 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 	// The end of the day is the parsed date with the time set to 23:59, or the current hackathon time if it's in the same day
 	endDate := parsedDate
 	if parsedDate.Year() == currentHackathonTimeParsed.Year() && parsedDate.Month() == currentHackathonTimeParsed.Month() && parsedDate.Day() == currentHackathonTimeParsed.Day() {
-		endDate = currentHackathonTimeParsed
+		endDate = currentHackathonTimeParsed.Add(-5 * time.Minute)
 	} else {
 		endDate = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 0, parsedDate.Location())
 	}
