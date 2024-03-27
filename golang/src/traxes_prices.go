@@ -29,20 +29,17 @@ func getDayAheadPrices(token string, dateString string) string {
 }
 
 func getLastPriceEstimate(priceEstimatesJson string) (float64, error) {
-	//log.Println("//////////////////")
-	//log.Println(priceEstimatesJson)
 	l := gjson.Get(priceEstimatesJson, "$values.0.priceEstimations.$values")
-	//log.Println(l)
-	if len(l.Array()) == 0 {
-		return 0, errors.New("Invalid price estimate")
+	arr := l.Array()
+	if len(arr) == 0 {
+		return 0, errors.New("no price estimates available")
 	}
-	item := l.Array()[len(l.Array())-1]
-	//log.Println(item)
-	//log.Println(item.Raw)
+	item := arr[len(arr)-1]
 	price := gjson.Get(item.Raw, "price")
-	//log.Println(price.Raw)
-	floatPrice, _ := strconv.ParseFloat(price.Raw, 32)
-	//log.Println(floatPrice)
+	floatPrice, err := strconv.ParseFloat(price.Raw, 32)
+	if err != nil {
+		return 0, err
+	}
 	return floatPrice, nil
 }
 
@@ -62,5 +59,6 @@ func getRealTimePrice(token string, realTime string) (float64, error) {
 	}
 
 	//log.Println(string(body))
-	return getLastPriceEstimate(string(body))
+	price, _ := getLastPriceEstimate(string(body))
+	return price
 }
