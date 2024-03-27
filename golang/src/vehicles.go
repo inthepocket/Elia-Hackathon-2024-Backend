@@ -93,7 +93,7 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 	for i := 0; i < 5; i++ {
 		date := now.Add(time.Duration(-i*72) * time.Minute)
 
-		log.Println("Getting sessions for", date.Format(time.RFC3339))
+		// log.Println("Getting sessions for", date.Format(time.RFC3339))
 		assetSessions, err := getAssetSessionsForDay(accessToken, ean, date.Format(time.RFC3339))
 
 		if err != nil {

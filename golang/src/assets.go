@@ -81,9 +81,8 @@ type Session struct {
 }
 
 func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
+	currentHackathonTime, err := getCurrentHackathonTime(token)
 	hackathonTime, err := getHackathonTime(token, realTime)
-
-	log.Println("hackathonTime: ", hackathonTime)
 
 	if err != nil {
 		log.Println("Error getting hackathon time: ", err.Error())
@@ -97,18 +96,29 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 		return nil, err
 	}
 
-	// Subtract 24 hours from the parsed date to get the start of the day
-	startDate := parsedDate.Add(-24 * time.Hour).Format(time.RFC3339)
+	// The start of the day is the parsed date with the time set to 00:00
+	startDate := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, parsedDate.Location()).Format(time.RFC3339)
 
-	log.Println("startDate: ", startDate)
+	// Parse the current hackathon time
+	currentHackathonTimeParsed, err := time.Parse(time.RFC3339, currentHackathonTime)
+	if err != nil {
+		log.Println("Error parsing current hackathon time: ", err.Error())
+		return nil, err
+	}
 
-	// The end of the day is the parsed date
-	endDate := parsedDate.Format(time.RFC3339)
+	// The end of the day is the parsed date with the time set to 23:59, or the current hackathon time if it's in the same day
+	endDate := parsedDate
+	if parsedDate.Year() == currentHackathonTimeParsed.Year() && parsedDate.Month() == currentHackathonTimeParsed.Month() && parsedDate.Day() == currentHackathonTimeParsed.Day() {
+		endDate = currentHackathonTimeParsed
+	} else {
+		endDate = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 0, parsedDate.Location())
+	}
+	endDateStr := endDate.Format(time.RFC3339)
 
-	log.Println("endDate: ", endDate)
+	log.Println("Sessions for period: ", startDate, endDateStr)
 
 	// Get the historic asset states for the specified date
-	assetStates, err := getHistoricAssetStates(token, ean, startDate, endDate)
+	assetStates, err := getHistoricAssetStates(token, ean, startDate, endDateStr)
 	if err != nil {
 		log.Println("Error getting asset states: ", err.Error())
 		return nil, err
@@ -127,24 +137,28 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 
 	log.Println("DisconnectedStates: ", len(assetStates)-connectedStates)
 
+	log.Println("\n\r")
+
 	var prevState *AssetState
 
 	var sessions []Session
 	var currentSession *Session
 	var currentChargePeriod *ChargePeriod
 
-	for _, state := range assetStates {
+	for i := range assetStates {
+		state := &assetStates[i]
+
 		if prevState == nil {
-			prevState = &state
+			prevState = state
 			continue
 		}
 
 		if state.Connected && !prevState.Connected {
 			// Start of a new session
-			currentSession = &Session{StartState: &state}
+			currentSession = &Session{StartState: state}
 		} else if !state.Connected && prevState.Connected && currentSession != nil {
 			// End of the current session
-			currentSession.EndState = &state
+			currentSession.EndState = state
 			sessions = append(sessions, *currentSession)
 			currentSession = nil
 		}
@@ -162,7 +176,7 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 			}
 		}
 
-		prevState = &state
+		prevState = state
 	}
 
 	// If there's an ongoing session or charge period when the asset states end, add them to the sessions
