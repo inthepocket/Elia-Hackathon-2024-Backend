@@ -36,6 +36,67 @@ func getDateString(hackathonTime string) string {
 	return hackathonTime[0:10]
 }
 
+func roundToPrevious15Mins(timeString string) string {
+	t, _ := time.Parse(time.RFC3339, timeString)
+	// Making 4 quarters in an hour
+	quarter := (t.Minute() / 15) * 15
+
+	// Round to the nearest quarter
+	//if t.Minute()%15 >= 8 {
+	//	quarter += 15
+	//}
+
+	// If the minute is 60, change to 00 and add 1 hour
+	if quarter == 60 {
+		t = t.Add(time.Hour)
+		quarter = 0
+	}
+
+	// Setting the minute to the nearest quarter
+	t = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), quarter, 0, 0, t.Location())
+
+	// Returning the time in RFC3339 format
+	return t.Format(time.RFC3339)
+}
+
+func roundToNext20Seconds(timeString string) string {
+	//log.Println("@@@@@@@@@@@")
+	//log.Println(timeString)
+	t, _ := time.Parse(time.RFC3339, timeString)
+	// Making 4 quarters in an hour
+	seconds := (t.Second() / 20) * 20
+
+	// Round to the nearest quarter
+	//if t.Minute()%15 >= 8 {
+	//	quarter += 15
+	//}
+
+	// If the minute is 60, change to 00 and add 1 hour
+	//if quarter == 60 {
+	//	t = t.Add(time.Hour)
+	//	quarter = 0
+	//}
+
+	// Setting the minute to the nearest quarter
+	t = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), seconds, 0, t.Location())
+	//log.Println(t.Format(time.RFC3339))
+	t = t.Add(time.Second * 40)
+	//log.Println(t.Format(time.RFC3339))
+	//log.Println("@@@@@@@@@@@")
+
+	// Returning the time in RFC3339 format
+	return t.Format(time.RFC3339)
+}
+
+func add15Mins(timeString string) string {
+	//log.Println("add15Mins", timeString)
+	parsed, _ := time.Parse(time.RFC3339, timeString)
+	parsed = parsed.Add(time.Minute * 15)
+	//log.Println(parsed)
+	//log.Println(parsed.Format(time.RFC3339))
+	return parsed.Format(time.RFC3339)
+}
+
 func getNextDay(dateString string) string {
 	parsed, _ := time.Parse("2006-01-02", dateString)
 	parsed = parsed.AddDate(0, 0, 1)

@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 
 	"github.com/joho/godotenv"
+	"github.com/tidwall/gjson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -27,4 +28,5 @@ func main() {
 	http.CanonicalHeaderKey("")
 	_ = errors.New("")
 	mongo.Connect(context.TODO(), options.Client().ApplyURI(""))
+	gjson.Get("", "")
 }

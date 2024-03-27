@@ -1,10 +1,14 @@
 package main
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 func steerAssets(token string) {
 
 	currentDateString := ""
+	var roofPrices RoofPrices
 
 	for {
 		// Get date of current day
@@ -24,12 +28,32 @@ func steerAssets(token string) {
 			dayAheadPricesJson := getDayAheadPrices(token, currentDateString)
 
 			// Find roof of cheapest surface
-			calculateRoofPricePerQuarter(dayAheadPricesJson)
+			var expectedKwhToCharge int = 100.0
+			roofPrices = calculateRoofPricePerQuarter(dayAheadPricesJson, expectedKwhToCharge, expectedKwhToCharge, 2.0)
 		}
 
+		log.Println("### roofPrices:", roofPrices.RoofComfort, roofPrices.RoofMax)
 		// Get real-time price
+		currentRealTimePrice := getRealTimePrice(token, currentHackathonTime)
+		log.Println("### real time price:", currentRealTimePrice)
 
 		// If real-time price < roof => charge
+		//if roofPrices.RoofComfort > float32(currentRealTimePrice) {
+		//	log.Println("CHARGE WITH NO REWARD")
+		//}
+
+		cars := getActiveCars(token)
+		log.Println("###", "Cars", cars)
+
+		if roofPrices.RoofMax > float32(currentRealTimePrice) {
+			//if true {
+			log.Println("CHARGE")
+		} else {
+			log.Println("DO NOT CHARGE")
+		}
+		steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice))
+
+		time.Sleep(time.Second * 2)
 
 	}
 
