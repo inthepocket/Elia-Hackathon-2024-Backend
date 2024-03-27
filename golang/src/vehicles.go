@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Vehicle struct {
@@ -108,4 +109,37 @@ func addReward(mongo *mongo.Client, ean string, reward float64) {
 			{"reward", vehicle.Reward + reward},
 		}}})
 
+}
+func getAndStoreVehicleSessions(mongo *mongo.Client, accessToken string, ean string) {
+	assetSessionsLast24h, err := getAssetSessionsForDay(accessToken, ean, time.Now().Format(time.RFC3339))
+	if err != nil {
+		assetSessionsLast24h = []Session{}
+	}
+
+	coll := mongo.Database("api").Collection("sessions")
+	ctx := context.TODO()
+
+	for _, session := range assetSessionsLast24h {
+		filter := bson.M{"startState": session.StartState}
+		update := bson.M{"$set": session}
+
+		result, err := coll.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+		if err != nil {
+			log.Println("Error upserting session: ", err)
+		}
+		log.Println("Upserted session: ", result)
+	}
+
+}
+
+func getAllVehiclesAndStoreSessions(mongo *mongo.Client, accessToken string) {
+	for {
+		vehicles := getAllVehicles(mongo)
+
+		for _, vehicle := range vehicles {
+			getAndStoreVehicleSessions(mongo, accessToken, vehicle.Ean)
+		}
+
+		time.Sleep(time.Minute)
+	}
 }
