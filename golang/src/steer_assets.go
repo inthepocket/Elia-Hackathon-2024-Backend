@@ -82,6 +82,8 @@ func steerAssets(token string) {
 
 func steerBattery(token string) {
 	for {
+		time.Sleep(time.Second * 2)
+
 		hackathonTime, err := getCurrentHackathonTime(token)
 		if err != nil {
 			log.Println("Error on getting hackathon time. ", err.Error())

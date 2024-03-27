@@ -35,7 +35,10 @@ func main() {
 
 	mongo := getMongoClient()
 
-	vehicles := getAllVehicles(mongo)
+	vehicles, err := getAllVehicles(mongo)
+	if err != nil {
+		panic(err)
+	}
 
 	log.Println("Vehicles:", vehicles[0])
 
@@ -109,7 +112,12 @@ func main() {
 			}
 			return
 		} else {
-			vehicles := getAllVehicles(mongo)
+			vehicles, err := getAllVehicles(mongo)
+
+			if err != nil {
+				http.Error(w, "Error getting vehicle data", http.StatusInternalServerError)
+				return
+			}
 
 			// Write the response
 			w.Header().Set("Content-Type", "application/json")
@@ -122,9 +130,9 @@ func main() {
 	})
 
 	time.Sleep(time.Second * 5)
-	// go steerBattery(accessToken)
-	// go steerAssets(accessToken)
-	go getAllVehiclesAndStoreSessions(mongo, accessToken)
+	//go steerBattery(accessToken)
+	go steerAssets(accessToken)
+	//go getAllVehiclesAndStoreSessions(mongo, accessToken)
 
 	server := http.Server{
 		Addr:    ":80",
