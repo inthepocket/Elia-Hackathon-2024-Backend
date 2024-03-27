@@ -1,21 +1,15 @@
-# fly.toml app configuration file generated for elia-hackathon-2024-backend on 2024-03-26T17:23:12+01:00
+# fly.toml app configuration file generated for elia-backend-steering-python on 2024-03-27T10:25:02+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'elia-hackathon-2024-backend'
+app = 'elia-backend-steering-python'
 primary_region = 'ams'
 
 [build]
-  [build.args]
-    GO_VERSION = '1.22.1'
-    dockerfile = './docker/Dockerfile'
-
-[env]
-  PORT = '80'
 
 [http_service]
-  internal_port = 80
+  internal_port = 5000
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true

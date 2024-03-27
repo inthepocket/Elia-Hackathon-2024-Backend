@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -37,7 +36,7 @@ func main() {
 
 	vehicles := getAllVehicles(mongo)
 
-	log.Println("Vehicles:", vehicles)
+	log.Println("Vehicles:", vehicles[0])
 
 	accessToken := GetAccessToken()
 
@@ -52,6 +51,7 @@ func main() {
 
 		ean := query.Get("ean")
 		realTime := query.Get("realTime")
+
 		if ean == "" {
 			http.Error(w, "Missing required 'ean' query parameter", http.StatusBadRequest)
 			return
@@ -75,8 +75,7 @@ func main() {
 		}
 
 		if sessions == nil {
-			http.Error(w, "No sessions found", http.StatusNotFound)
-			return
+			sessions = []Session{}
 		}
 
 		// Write the response
@@ -86,8 +85,43 @@ func main() {
 		}
 	})
 
-	time.Sleep(time.Second * 5)
-	go steerAssets(accessToken)
+	mux.HandleFunc("/vehicles", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("received GET /vehicles", r)
+
+		// Parse the query parameters
+		query := r.URL.Query()
+
+		ean := query.Get("ean")
+		if ean != "" {
+
+			vehicleResponse, err := getVehicleData(mongo, ean, accessToken)
+
+			if err != nil {
+				http.Error(w, "Error getting vehicle data", http.StatusInternalServerError)
+				return
+			}
+
+			// Write the response
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(vehicleResponse); err != nil {
+				log.Printf("Error encoding response: %s\n", err)
+			}
+			return
+		} else {
+			vehicles := getAllVehicles(mongo)
+
+			// Write the response
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(vehicles); err != nil {
+				log.Printf("Error encoding response: %s\n", err)
+			}
+
+		}
+
+	})
+
+	// time.Sleep(time.Second * 5)
+	// go steerAssets(accessToken)
 
 	server := http.Server{
 		Addr:    ":80",

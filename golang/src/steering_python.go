@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 )
 
 type RoofPrices struct {
@@ -27,7 +28,7 @@ func calculateRoofPricePerQuarter(dayAheadPricesJson string, evComfortChargeCapa
 
 	log.Println(dataJson)
 
-	body, err := makeRequest("http://host.docker.internal:5001", "POST", "/calculate_roof_price_per_quarter", headers, params, bytes.NewBuffer([]byte(dataJson)))
+	body, err := makeRequest(os.Getenv("STEERING_PYTHON_URI"), "POST", "/calculate_roof_price_per_quarter", headers, params, bytes.NewBuffer([]byte(dataJson)))
 	if err != nil {
 		log.Fatal("Error on dispatching request. ", err.Error())
 	}

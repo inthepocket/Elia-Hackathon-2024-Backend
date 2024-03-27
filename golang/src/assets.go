@@ -66,21 +66,29 @@ func getHistoricAssetStates(token, ean, startDate, endDate string) ([]AssetState
 	return assetStatesResponse.Values, nil
 }
 
+type ChargePeriod struct {
+	StartTime  string
+	EndTime    string
+	SocAtStart float32
+	SocAtEnd   float32
+	ChargedKwh float32
+}
+
 type Session struct {
-	StartState   *AssetState `json:"startState"`
-	ChargedState *AssetState `json:"chargedState"`
-	EndState     *AssetState `json:"endState"`
+	StartState    *AssetState `json:"startState"`
+	EndState      *AssetState `json:"endState"`
+	ChargePeriods []ChargePeriod
 }
 
 func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 	hackathonTime, err := getHackathonTime(token, realTime)
+
+	log.Println("hackathonTime: ", hackathonTime)
+
 	if err != nil {
 		log.Println("Error getting hackathon time: ", err.Error())
 		return nil, err
 	}
-
-	var sessions []Session
-	var startState, chargedState, endState *AssetState
 
 	// Parse the date string into a time.Time
 	parsedDate, err := time.Parse(time.RFC3339, hackathonTime)
@@ -92,8 +100,12 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 	// Subtract 24 hours from the parsed date to get the start of the day
 	startDate := parsedDate.Add(-24 * time.Hour).Format(time.RFC3339)
 
+	log.Println("startDate: ", startDate)
+
 	// The end of the day is the parsed date
 	endDate := parsedDate.Format(time.RFC3339)
+
+	log.Println("endDate: ", endDate)
 
 	// Get the historic asset states for the specified date
 	assetStates, err := getHistoricAssetStates(token, ean, startDate, endDate)
@@ -102,25 +114,115 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 		return nil, err
 	}
 
+	log.Println("assetStates found: ", len(assetStates))
+
+	//print amount of states with connected true
+	connectedStates := 0
 	for _, state := range assetStates {
-		if state.Connected && startState == nil {
-			// Start of a new session
-			startState = &state
-		} else if !state.Connected && startState != nil {
-			// End of the current session
-			endState = &state
-			sessions = append(sessions, Session{StartState: startState, ChargedState: chargedState, EndState: endState})
-			startState, chargedState, endState = nil, nil, nil
-		} else if state.Soc == state.SocMax && state.Connected && chargedState == nil {
-			// Fully charged state
-			chargedState = &state
+		if state.Connected {
+			connectedStates++
 		}
 	}
+	log.Println("connectedStates: ", connectedStates)
 
-	// If there's an ongoing session at the end of the day, add it to the sessions
-	if startState != nil {
-		sessions = append(sessions, Session{StartState: startState, ChargedState: chargedState, EndState: nil})
+	log.Println("DisconnectedStates: ", len(assetStates)-connectedStates)
+
+	var prevState *AssetState
+
+	var sessions []Session
+	var currentSession *Session
+	var currentChargePeriod *ChargePeriod
+
+	for _, state := range assetStates {
+		if prevState == nil {
+			prevState = &state
+			continue
+		}
+
+		if state.Connected && !prevState.Connected {
+			// Start of a new session
+			currentSession = &Session{StartState: &state}
+		} else if !state.Connected && prevState.Connected && currentSession != nil {
+			// End of the current session
+			currentSession.EndState = &state
+			sessions = append(sessions, *currentSession)
+			currentSession = nil
+		}
+
+		if state.Consumption > 0 && (currentChargePeriod == nil || currentChargePeriod.EndTime != "") {
+			// Start of a new charge period
+			currentChargePeriod = &ChargePeriod{StartTime: state.StateTime, SocAtStart: state.Soc}
+		} else if state.Consumption == 0 && currentChargePeriod != nil && currentChargePeriod.EndTime == "" {
+			// End of the current charge period
+			currentChargePeriod.EndTime = state.StateTime
+			currentChargePeriod.SocAtEnd = state.Soc
+			currentChargePeriod.ChargedKwh = currentChargePeriod.SocAtEnd - currentChargePeriod.SocAtStart
+			currentSession.ChargePeriods = append(currentSession.ChargePeriods, *currentChargePeriod)
+		}
+
+		prevState = &state
+	}
+
+	// If there's an ongoing session or charge period when the asset states end, add them to the sessions
+	if currentSession != nil {
+		if currentChargePeriod != nil && currentChargePeriod.EndTime == "" {
+			currentChargePeriod.EndTime = assetStates[len(assetStates)-1].StateTime
+			currentChargePeriod.SocAtEnd = assetStates[len(assetStates)-1].Soc
+			currentChargePeriod.ChargedKwh = currentChargePeriod.SocAtEnd - currentChargePeriod.SocAtStart
+			currentSession.ChargePeriods = append(currentSession.ChargePeriods, *currentChargePeriod)
+		}
+		sessions = append(sessions, *currentSession)
 	}
 
 	return sessions, nil
+}
+
+func getCurrentAssetState(token, ean string) (*AssetState, error) {
+	hackathonTime := getCurrentHackathonTime(token)
+
+	parsedDate, err := time.Parse(time.RFC3339, hackathonTime)
+	if err != nil {
+		log.Println("Error parsing date: ", err.Error())
+		return nil, err
+	}
+
+	startDate := parsedDate.Add(-40 * time.Second).Format(time.RFC3339)
+	endDate := parsedDate.Add(-20 * time.Second).Format(time.RFC3339)
+
+	log.Println("Current time: ", startDate, endDate)
+
+	headers := map[string]string{
+		"Authorization": "Bearer " + token,
+	}
+
+	params := url.Values{}
+	params.Add("ean", ean)
+	params.Add("startDate", startDate)
+	params.Add("endDate", endDate)
+
+	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "GET", "/assets/states", headers, params, nil)
+	if err != nil {
+		log.Println("Error on dispatching request. ", err.Error())
+		return nil, err
+	}
+
+	log.Println("Asset state response: ", string(body))
+
+	type AssetStateApiResponse struct {
+		ID     string       `json:"$id"`
+		Values []AssetState `json:"$values"`
+	}
+
+	var response AssetStateApiResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if len(response.Values) == 0 {
+		return nil, errors.New("no asset state returned by the API")
+	}
+
+	return &response.Values[0], nil
+
 }

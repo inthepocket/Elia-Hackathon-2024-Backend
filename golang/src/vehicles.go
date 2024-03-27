@@ -2,18 +2,27 @@ package main
 
 import (
 	"context"
+	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Vehicle struct {
-	_id      string `bson:"_id"`
-	model    string `bson:"model"`
-	version  string `bson:"version"`
-	capacity int    `bson:"capacity"`
-	rangeKm  int    `bson:"range"`
-	ean      string `bson:"ean"`
+	ID       string  `bson:"_id"`
+	Model    string  `bson:"model"`
+	Version  string  `bson:"version"`
+	Capacity int     `bson:"capacity"`
+	RangeKm  int     `bson:"range"`
+	Ean      string  `bson:"ean"`
+	KmPerKwh float64 `bson:"kmPerKwh"`
+}
+
+type VehicleResponse struct {
+	Metadata            Vehicle
+	CurrentState        AssetState
+	SessionsLast24hours []Session
 }
 
 func getAllVehicles(mongo *mongo.Client) []Vehicle {
@@ -42,4 +51,47 @@ func getAllVehicles(mongo *mongo.Client) []Vehicle {
 	}
 
 	return vehicles
+}
+
+func getVehicleByEan(mongo *mongo.Client, ean string) Vehicle {
+	vehicle := Vehicle{}
+
+	coll := mongo.Database("api").Collection("vehicles")
+	ctx := context.TODO()
+
+	// Find vehicle by EAN
+	err := coll.FindOne(ctx, bson.M{"ean": ean}).Decode(&vehicle)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return vehicle
+}
+
+func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (VehicleResponse, error) {
+	vehicle := getVehicleByEan(mongo, ean)
+
+	assetState, err := getCurrentAssetState(accessToken, ean)
+
+	if err != nil {
+		assetState = nil
+		return VehicleResponse{}, err
+	}
+
+	log.Println("Asset state:", assetState)
+
+	assetSessionsLast24h, _ := getAssetSessionsForDay(accessToken, ean, time.Now().Format(time.RFC3339))
+	// if err != nil {
+	// 	assetSessionsLast24h = []Session{}
+	// 	return
+	// }
+
+	vehicleResponse := VehicleResponse{
+		Metadata:            vehicle,
+		CurrentState:        *assetState,
+		SessionsLast24hours: assetSessionsLast24h,
+	}
+
+	return vehicleResponse, nil
 }
