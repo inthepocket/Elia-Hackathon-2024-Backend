@@ -93,7 +93,7 @@ func steerAssets(token string) {
 
 func steerBattery(token string) {
 	for {
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 5)
 
 		hackathonTime, err := getCurrentHackathonTime(token)
 		if err != nil {
@@ -101,10 +101,14 @@ func steerBattery(token string) {
 			continue
 		}
 		realTimePrice, err := getRealTimePrice(token, hackathonTime)
-		if err != nil {
-			log.Println("Error on getting real time price. ", err.Error())
+		if err != nil || math.Abs(realTimePrice) < 0.001 {
+			log.Println("###### No real time price available ", err)
 			continue
 		}
+
+		log.Println("Steering Battery...")
+		log.Println("Hackathon Time: ", hackathonTime)
+		log.Println("Real Time Price: ", realTimePrice)
 
 		if realTimePrice < 0 {
 			log.Println("Real time price is negative, charge battery")
