@@ -75,8 +75,8 @@ type ChargePeriod struct {
 }
 
 type Session struct {
-	StartState    *AssetState `json:"startState"`
-	EndState      *AssetState `json:"endState"`
+	StartState    *AssetState `json:"StartState"`
+	EndState      *AssetState `json:"EndState"`
 	ChargePeriods []ChargePeriod
 }
 

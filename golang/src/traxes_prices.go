@@ -65,9 +65,9 @@ func getRealTimePrice(token string, realTime string) (float64, error) {
 }
 
 type RealTimePrice struct {
-	date        string
-	requestTime string
-	price       float64
+	Date        string
+	RequestTime string
+	Price       float64
 }
 
 func getHistoricRealTimePrices(token, startDate, endDate string) []RealTimePrice {
@@ -84,6 +84,8 @@ func getHistoricRealTimePrices(token, startDate, endDate string) []RealTimePrice
 	if err != nil {
 		log.Fatal("Error on dispatching request. ", err.Error())
 	}
+
+	log.Println(string(body))
 
 	var response []RealTimePrice
 	if err := json.Unmarshal(body, &response); err != nil {
