@@ -12,8 +12,11 @@ func steerAssets(token string) {
 	currentHackathonTime := ""
 	currentDateString := ""
 	var roofPrices RoofPrices
-	var lastKnownSoc map[string]float32
-	var carMinChargeLevels map[string]float32
+	lastKnownSoc := make(map[string]float32)
+	carMinChargeLevels := make(map[string]float32)
+	carRewards := make(map[string]float32)
+
+	previousMongoDbFlushTime := time.Now()
 
 	for {
 		time.Sleep(time.Second * 2)
@@ -44,7 +47,7 @@ func steerAssets(token string) {
 
 			// Find roof of cheapest surface
 			var expectedKwhToCharge int = 100.0
-			roofPrices = calculateRoofPricePerQuarter(dayAheadPricesJson, expectedKwhToCharge, expectedKwhToCharge, 2.0)
+			roofPrices = calculateRoofPricePerQuarter(dayAheadPricesJson, expectedKwhToCharge, expectedKwhToCharge, 1.1)
 		}
 
 		log.Println("### roofPrices:", roofPrices.RoofComfort, roofPrices.RoofMax)
@@ -67,7 +70,15 @@ func steerAssets(token string) {
 			//log.Println(car.consumptionKwSincePreviousTime, timeDiffSeconds(previousHackathonTime, currentHackathonTime), currentRealTimePrice)
 			reward := car.consumptionKwSincePreviousTime * float32(timeDiffSeconds(previousHackathonTime, currentHackathonTime)*currentRealTimePrice/1000/3600)
 			log.Println(car.Ean, "Reward: ", reward)
-			//addReward(getMongoClient(), car.Ean, float64(reward))
+
+			var currentCarReward float32 = 0
+			if val, ok := carRewards[car.Ean]; ok {
+				currentCarReward = val
+			}
+			if reward < 0 {
+				panic("Negative reward")
+			}
+			carRewards[car.Ean] = currentCarReward + reward*0.25
 		}
 
 		for _, car := range cars {
@@ -77,7 +88,6 @@ func steerAssets(token string) {
 			if currentSoc < lastKnownSocCar {
 				carMinChargeLevels[car.Ean] = (lastKnownSocCar - currentSoc) * 1.5
 			}
-
 		}
 
 		if roofPrices.RoofMax > float32(currentRealTimePrice) {
@@ -86,6 +96,19 @@ func steerAssets(token string) {
 			log.Println("DO NOT CHARGE")
 		}
 		steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice), carMinChargeLevels)
+		log.Println(carRewards)
+
+		if time.Now().Sub(previousMongoDbFlushTime).Seconds() > 120 {
+			log.Println("###### Flushing to MongoDb")
+			for _, car := range cars {
+				if carReward, ok := carRewards[car.Ean]; ok {
+					addReward(getMongoClient(), car.Ean, float64(carReward))
+				}
+				carRewards[car.Ean] = 0
+			}
+			previousMongoDbFlushTime = time.Now()
+
+		}
 
 	}
 
