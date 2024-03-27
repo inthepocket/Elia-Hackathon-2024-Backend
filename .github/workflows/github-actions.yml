@@ -16,7 +16,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.YOUR_PAT_SECRET }}
+          password: ${{ secrets.PAT_SECRET }}
 
       - name: Create .env file
         run: echo "${{ secrets.ENV_FILE }}" > ./golang/.env
