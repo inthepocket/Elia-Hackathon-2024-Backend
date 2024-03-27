@@ -10,7 +10,7 @@ from api_endpoints import router as http_router
 load_dotenv('/app/.env')
 
 
-app = FastAPI()
+app = FastAPI(debug=True)
 app.include_router(http_router)
 origins = [
     "http://localhost",
@@ -29,5 +29,5 @@ app.add_middleware(
 async def root():
     return 200
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000, reload=True, debug=True)  # TODO change debug eventually to False
+#if __name__ == "__main__":
+#    uvicorn.run("main:app", port=8000, reload=True, debug=True)  # TODO change debug eventually to False

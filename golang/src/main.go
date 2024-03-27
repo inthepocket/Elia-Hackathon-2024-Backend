@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -64,6 +65,9 @@ func main() {
 			log.Printf("Error encoding response: %s\n", err)
 		}
 	})
+
+	time.Sleep(time.Second * 5)
+	go steerAssets(accessToken)
 
 	server := http.Server{
 		Addr:    ":80",

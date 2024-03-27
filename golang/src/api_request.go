@@ -4,18 +4,17 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 )
 
-func makeRequest(method, path string, headers map[string]string, params url.Values) ([]byte, error) {
-	u, err := url.Parse(os.Getenv("TRAXES_API_BASE_URI") + path)
+func makeRequest(baseUrl string, method, path string, headers map[string]string, params url.Values, data io.Reader) ([]byte, error) {
+	u, err := url.Parse(baseUrl + path)
 	if err != nil {
 		return nil, err
 	}
 
 	u.RawQuery = params.Encode()
 
-	req, err := http.NewRequest(method, u.String(), nil)
+	req, err := http.NewRequest(method, u.String(), data)
 	if err != nil {
 		return nil, err
 	}

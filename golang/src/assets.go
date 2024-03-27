@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -44,7 +45,7 @@ func getHistoricAssetStates(token, ean, startDate, endDate string) []AssetState 
 	params.Add("startDate", startDate)
 	params.Add("endDate", endDate)
 
-	body, err := makeRequest("GET", "/assets/states", headers, params)
+	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "GET", "/assets/states", headers, params, nil)
 	if err != nil {
 		log.Fatal("Error on dispatching request. ", err.Error())
 	}
