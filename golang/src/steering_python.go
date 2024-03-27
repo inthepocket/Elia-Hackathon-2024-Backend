@@ -12,6 +12,7 @@ import (
 type RoofPrices struct {
 	RoofComfort float32 `json:"roof_comfort"`
 	RoofMax     float32 `json:"roof_max"`
+	LastHourMax float32 `json:"last_hour_max"`
 }
 
 func calculateRoofPricePerQuarter(dayAheadPricesJson string, evComfortChargeCapacityKwh int, evMaxChargeCapacityKwh int, bufferPerc float32) RoofPrices {

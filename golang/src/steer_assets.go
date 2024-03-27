@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -48,9 +49,14 @@ func steerAssets(token string) {
 			// Find roof of cheapest surface
 			var expectedKwhToCharge int = 100.0
 			roofPrices = calculateRoofPricePerQuarter(dayAheadPricesJson, expectedKwhToCharge, expectedKwhToCharge, 1.1)
+
+			vehicles, _ := getAllVehicles(getMongoClient())
+			for _, vehicle := range vehicles {
+				setLastHourMax(getMongoClient(), vehicle.Ean, fmt.Sprintf("%d:00:00", int(roofPrices.LastHourMax)))
+			}
 		}
 
-		log.Println("### roofPrices:", roofPrices.RoofComfort, roofPrices.RoofMax)
+		log.Println("### roofPrices:", roofPrices.RoofComfort, roofPrices.RoofMax, roofPrices.LastHourMax)
 		// Get real-time price
 		currentRealTimePrice, err := getRealTimePrice(token, currentHackathonTime)
 		if err != nil || math.Abs(currentRealTimePrice) < 0.001 {
