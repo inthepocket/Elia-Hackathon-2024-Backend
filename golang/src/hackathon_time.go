@@ -21,12 +21,12 @@ func getCurrentHackathonTime(token string) string {
 
 	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "GET", "/times/HackathonTimeForNow", headers, nil, nil)
 	if err != nil {
-		log.Fatal("Error on dispatching request. ", err.Error())
+		log.Println("Error on dispatching request. ", err.Error())
 	}
 
 	var hackathonTimeResponse HackathonTimeResponse
 	if err := json.Unmarshal(body, &hackathonTimeResponse); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	return hackathonTimeResponse.HackathonTime
@@ -42,7 +42,7 @@ func getNextDay(dateString string) string {
 	return parsed.Format("2006-01-02")
 }
 
-func getHackathonTime(token, realTime string) string {
+func getHackathonTime(token, realTime string) (string, error) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
@@ -52,13 +52,13 @@ func getHackathonTime(token, realTime string) string {
 
 	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "GET", "/times/HackathonTimeForDateTime", headers, params, nil)
 	if err != nil {
-		log.Fatal("Error on dispatching request. ", err.Error())
+		return "", err
 	}
 
 	var hackathonTimeResponse HackathonTimeResponse
 	if err := json.Unmarshal(body, &hackathonTimeResponse); err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
 
-	return hackathonTimeResponse.HackathonTime
+	return hackathonTimeResponse.HackathonTime, nil
 }

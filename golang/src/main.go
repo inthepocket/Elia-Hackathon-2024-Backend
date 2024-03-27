@@ -45,19 +45,39 @@ func main() {
 	mux.HandleFunc("/hello", handlerFunc)
 
 	mux.HandleFunc("/sessions", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("received GET /sessions")
+		log.Println("received GET /sessions", r)
 
 		// Parse the query parameters
 		query := r.URL.Query()
+
 		ean := query.Get("ean")
 		realTime := query.Get("realTime")
+		if ean == "" {
+			http.Error(w, "Missing required 'ean' query parameter", http.StatusBadRequest)
+			return
+		}
+
+		if realTime == "" {
+			http.Error(w, "Missing required 'realTime' query parameter", http.StatusBadRequest)
+			return
+		}
+
 		realTime, err := url.QueryUnescape(realTime)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 		// Get the asset sessions for the specified day
-		sessions := getAssetSessionsForDay(accessToken, ean, realTime)
+		sessions, err := getAssetSessionsForDay(accessToken, ean, realTime)
+		if err != nil {
+			http.Error(w, "Error getting asset sessions", http.StatusInternalServerError)
+			return
+		}
+
+		if sessions == nil {
+			http.Error(w, "No sessions found", http.StatusNotFound)
+			return
+		}
 
 		// Write the response
 		w.Header().Set("Content-Type", "application/json")
