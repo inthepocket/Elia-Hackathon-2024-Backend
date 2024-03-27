@@ -8,6 +8,7 @@ services:
     tty: true # colorized output
     ports:
       - 80:80
+    image: ghcr.io/finnjanssens/elia-hackathon-bakend-golang:latest
   steering-python:
     network_mode: "host"
     build:
@@ -16,3 +17,4 @@ services:
     tty: true # colorized output
     ports:
       - 5001:5001
+    image: ghcr.io/finnjanssens/elia-hackathon-bakend-steering-python:latest
