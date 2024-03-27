@@ -157,7 +157,9 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 			currentChargePeriod.EndTime = state.StateTime
 			currentChargePeriod.SocAtEnd = state.Soc
 			currentChargePeriod.ChargedKwh = currentChargePeriod.SocAtEnd - currentChargePeriod.SocAtStart
-			currentSession.ChargePeriods = append(currentSession.ChargePeriods, *currentChargePeriod)
+			if currentSession != nil && currentChargePeriod != nil {
+				currentSession.ChargePeriods = append(currentSession.ChargePeriods, *currentChargePeriod)
+			}
 		}
 
 		prevState = &state
@@ -169,7 +171,9 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 			currentChargePeriod.EndTime = assetStates[len(assetStates)-1].StateTime
 			currentChargePeriod.SocAtEnd = assetStates[len(assetStates)-1].Soc
 			currentChargePeriod.ChargedKwh = currentChargePeriod.SocAtEnd - currentChargePeriod.SocAtStart
-			currentSession.ChargePeriods = append(currentSession.ChargePeriods, *currentChargePeriod)
+			if currentSession != nil && currentChargePeriod != nil {
+				currentSession.ChargePeriods = append(currentSession.ChargePeriods, *currentChargePeriod)
+			}
 		}
 		sessions = append(sessions, *currentSession)
 	}

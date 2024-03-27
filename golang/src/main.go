@@ -35,13 +35,6 @@ func main() {
 
 	mongo := getMongoClient()
 
-	vehicles, err := getAllVehicles(mongo)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println("Vehicles:", vehicles[0])
-
 	accessToken := GetAccessToken()
 
 	mux := http.NewServeMux()
@@ -131,7 +124,7 @@ func main() {
 
 	time.Sleep(time.Second * 5)
 	//go steerBattery(accessToken)
-	go steerAssets(accessToken)
+	//go steerAssets(accessToken)
 	//go getAllVehiclesAndStoreSessions(mongo, accessToken)
 
 	server := http.Server{
