@@ -128,6 +128,18 @@ func addReward(mongo *mongo.Client, ean string, reward float64) error {
 
 	return nil
 }
+
+func setLastHourMax(mongo *mongo.Client, ean string, lastHourMax string) error {
+	coll := mongo.Database("api").Collection("vehicles")
+	ctx := context.TODO()
+	coll.UpdateOne(ctx, bson.M{"ean": ean}, bson.D{
+		{"$set", bson.D{
+			{"lastHourMax", lastHourMax},
+		}}})
+
+	return nil
+}
+
 func getAndStoreVehicleSessions(mongo *mongo.Client, accessToken string, ean string) {
 	assetSessionsLast24h, err := getAssetSessionsForDay(accessToken, ean, time.Now().Format(time.RFC3339))
 	if err != nil {
