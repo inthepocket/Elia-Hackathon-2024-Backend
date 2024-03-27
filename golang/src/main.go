@@ -33,11 +33,11 @@ func main() {
 		log.Println("No .env file found")
 	}
 
-	mongo := getMongoClient()
+	// mongo := getMongoClient()
 
-	vehicles := getAllVehicles(mongo)
+	// vehicles := getAllVehicles(mongo)
 
-	log.Println("Vehicles:", vehicles)
+	// log.Println("Vehicles:", vehicles)
 
 	accessToken := GetAccessToken()
 

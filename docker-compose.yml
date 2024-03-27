@@ -10,7 +10,6 @@ services:
       - 80:80
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: docker.io/finnjanssens/elia-hackathon-2024-backend/elia-hackathon-backend-golang:latest
   steering-python:
     network_mode: "host"
     build:
@@ -19,4 +18,3 @@ services:
     tty: true # colorized output
     ports:
       - 5001:5001
-    image: docker.io/finnjanssens/elia-hackathon-2024-backend/elia-hackathon-backend-steering-python:latest
