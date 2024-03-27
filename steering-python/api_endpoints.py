@@ -48,6 +48,9 @@ async def calculate_roof_price_per_quarter(request: Request):
 
     ev_pmax = 22  # kW
     ev_charged_per_hour = ev_pmax  # kWh
+    cutoff_time = 17  # 17pm(ish)
+
+    df = df.head(cutoff_time)
 
 
     ev_charging_hours_count_comfort = ev_comfort_charge_capacity_kwh / ev_charged_per_hour
