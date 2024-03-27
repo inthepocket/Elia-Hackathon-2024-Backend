@@ -35,13 +35,6 @@ func main() {
 
 	mongo := getMongoClient()
 
-	vehicles, err := getAllVehicles(mongo)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println("Vehicles:", vehicles[0])
-
 	accessToken := GetAccessToken()
 
 	mux := http.NewServeMux()
