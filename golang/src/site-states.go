@@ -76,6 +76,18 @@ type SteeringRequestData struct {
 	Requests    []InvidualSteeringRequest `json:"requests"`
 }
 
+type InvidualProductionRequest struct {
+	Ean                 string  `json:"ean"`
+	Steered             bool    `json:"steered"`
+	RequestedProduction float32 `json:"requestedProduction"`
+	//RequestedConsumption float32 `json:"requestedConsumption"`
+}
+
+type ProductionRequestData struct {
+	RequestTime string                    `json:"requestTime"`
+	Requests    []InvidualSteeringRequest `json:"requests"`
+}
+
 func steeringRequest(token string, currentTime string, cars []Car, charge bool) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
@@ -111,5 +123,30 @@ func steeringRequest(token string, currentTime string, cars []Car, charge bool) 
 	}
 	log.Println(string(body))
 	log.Println("#####################")
+
+}
+
+func steeringRequestBattery(token string, currentTime string, cars []Car, charge bool) {
+
+	var data []byte
+	if charge {
+		dataRequest := SteeringRequestData{}
+		dataRequest.RequestTime = roundToNext20Seconds(currentTime)
+		var request InvidualSteeringRequest
+		request.Ean = "541657038024211911"
+		request.Steered = true
+		request.RequestedConsumption = 50
+		data, _ = json.Marshal([]SteeringRequestData{dataRequest})
+	} else {
+		dataRequest := ProductionRequestData{}
+		dataRequest.RequestTime = roundToNext20Seconds(currentTime)
+		var request InvidualProductionRequest
+		request.Ean = "541657038024211911"
+		request.Steered = true
+		request.RequestedProduction = 50
+		data, _ = json.Marshal([]ProductionRequestData{dataRequest})
+	}
+
+	log.Println(data)
 
 }
