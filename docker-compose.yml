@@ -10,7 +10,7 @@ services:
       - 80:80
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: ghcr.io/finnjanssens/elia-hackathon-backend-golang:latest
+    image: ghcr.io/inthepocket/Elia-Hackathon-2024-Backend/elia-hackathon-backend-golang:latest
   steering-python:
     network_mode: "host"
     build:
@@ -19,4 +19,4 @@ services:
     tty: true # colorized output
     ports:
       - 5001:5001
-    image: ghcr.io/finnjanssens/elia-hackathon-backend-steering-python:latest
+    image: ghcr.io/inthepocket/Elia-Hackathon-2024-Backend/elia-hackathon-backend-steering-python:latest
