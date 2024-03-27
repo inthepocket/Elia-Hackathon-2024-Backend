@@ -22,9 +22,9 @@ type Vehicle struct {
 }
 
 type VehicleResponse struct {
-	Metadata            Vehicle
-	CurrentState        AssetState
-	SessionsLast24hours []Session
+	Metadata          Vehicle
+	CurrentState      AssetState
+	SessionsLast5Days []Session
 }
 
 func getAllVehicles(mongo *mongo.Client) ([]Vehicle, error) {
@@ -85,16 +85,31 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 
 	log.Println("Asset state:", assetState)
 
-	assetSessionsLast24h, _ := getAssetSessionsForDay(accessToken, ean, time.Now().Format(time.RFC3339))
+	now := time.Now()
+	sessions := []Session{}
+
+	for i := 0; i < 5; i++ {
+		date := now.Add(time.Duration(-i*72) * time.Minute)
+
+		log.Println("Getting sessions for", date.Format(time.RFC3339))
+		assetSessions, err := getAssetSessionsForDay(accessToken, ean, date.Format(time.RFC3339))
+
+		if err != nil {
+			log.Println("Error getting asset sessions: ", err)
+			continue
+		}
+
+		sessions = append(sessions, assetSessions...)
+	}
 	// if err != nil {
 	// 	assetSessionsLast24h = []Session{}
 	// 	return
 	// }
 
 	vehicleResponse := VehicleResponse{
-		Metadata:            vehicle,
-		CurrentState:        *assetState,
-		SessionsLast24hours: assetSessionsLast24h,
+		Metadata:          vehicle,
+		CurrentState:      *assetState,
+		SessionsLast5Days: sessions,
 	}
 
 	return vehicleResponse, nil
