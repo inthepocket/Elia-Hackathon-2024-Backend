@@ -84,8 +84,8 @@ type InvidualProductionRequest struct {
 }
 
 type ProductionRequestData struct {
-	RequestTime string                    `json:"requestTime"`
-	Requests    []InvidualSteeringRequest `json:"requests"`
+	RequestTime string                      `json:"requestTime"`
+	Requests    []InvidualProductionRequest `json:"requests"`
 }
 
 func steeringRequest(token string, currentTime string, cars []Car, charge bool) {
@@ -126,8 +126,7 @@ func steeringRequest(token string, currentTime string, cars []Car, charge bool) 
 
 }
 
-func steeringRequestBattery(token string, currentTime string, cars []Car, charge bool) {
-
+func steeringRequestBattery(token string, currentTime string, charge bool) {
 	var data []byte
 	if charge {
 		dataRequest := SteeringRequestData{}
@@ -136,6 +135,7 @@ func steeringRequestBattery(token string, currentTime string, cars []Car, charge
 		request.Ean = "541657038024211911"
 		request.Steered = true
 		request.RequestedConsumption = 50
+		dataRequest.Requests = append(dataRequest.Requests, request)
 		data, _ = json.Marshal([]SteeringRequestData{dataRequest})
 	} else {
 		dataRequest := ProductionRequestData{}
@@ -144,9 +144,24 @@ func steeringRequestBattery(token string, currentTime string, cars []Car, charge
 		request.Ean = "541657038024211911"
 		request.Steered = true
 		request.RequestedProduction = 50
+		dataRequest.Requests = append(dataRequest.Requests, request)
 		data, _ = json.Marshal([]ProductionRequestData{dataRequest})
 	}
 
-	log.Println(data)
+	headers := map[string]string{
+		"Authorization": "Bearer " + token,
+	}
+	headers["Content-Type"] = "application/json"
+
+	params := url.Values{}
+
+	log.Println("######### REQUEST ############")
+	log.Println(string(data))
+	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(data)))
+	if err != nil {
+		log.Println("Error on dispatching request. ", err.Error())
+	}
+	log.Println(string(body))
+	log.Println("#####################")
 
 }

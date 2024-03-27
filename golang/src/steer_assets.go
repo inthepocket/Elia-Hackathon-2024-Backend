@@ -58,3 +58,22 @@ func steerAssets(token string) {
 	}
 
 }
+
+func steerBattery(token string) {
+	for {
+		hackathonTime := getCurrentHackathonTime(token)
+		realTimePrice := getRealTimePrice(token, hackathonTime)
+
+		if realTimePrice < 0 {
+			log.Println("Real time price is negative, charge battery")
+			steeringRequestBattery(token, hackathonTime, true)
+		} else {
+			log.Println("Real time price is positive, do not charge battery")
+			steeringRequestBattery(token, hackathonTime, false)
+		}
+
+		time.Sleep(time.Second * 2)
+
+	}
+
+}

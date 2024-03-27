@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -120,7 +121,8 @@ func main() {
 
 	})
 
-	// time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 5)
+	go steerBattery(accessToken)
 	// go steerAssets(accessToken)
 
 	server := http.Server{
