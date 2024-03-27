@@ -12,6 +12,8 @@ func steerAssets(token string) {
 	currentHackathonTime := ""
 	currentDateString := ""
 	var roofPrices RoofPrices
+	var lastKnownSoc map[string]float32
+	var carMinChargeLevels map[string]float32
 
 	for {
 		time.Sleep(time.Second * 2)
@@ -61,13 +63,21 @@ func steerAssets(token string) {
 
 		cars := getActiveCars(token)
 		log.Println("###", "Cars", cars)
-
 		for _, car := range cars {
 			//log.Println(car.consumptionKwSincePreviousTime, timeDiffSeconds(previousHackathonTime, currentHackathonTime), currentRealTimePrice)
 			reward := car.consumptionKwSincePreviousTime * float32(timeDiffSeconds(previousHackathonTime, currentHackathonTime)*currentRealTimePrice/1000/3600)
 			log.Println(car.Ean, "Reward: ", reward)
-
 			//addReward(getMongoClient(), car.Ean, float64(reward))
+		}
+
+		for _, car := range cars {
+			lastKnownSocCar := lastKnownSoc[car.Ean]
+			currentSoc := car.Soc
+
+			if currentSoc < lastKnownSocCar {
+				carMinChargeLevels[car.Ean] = (lastKnownSocCar - currentSoc) * 1.5
+			}
+
 		}
 
 		if roofPrices.RoofMax > float32(currentRealTimePrice) {
@@ -75,7 +85,7 @@ func steerAssets(token string) {
 		} else {
 			log.Println("DO NOT CHARGE")
 		}
-		steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice))
+		steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice), carMinChargeLevels)
 
 	}
 

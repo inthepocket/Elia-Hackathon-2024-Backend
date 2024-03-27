@@ -14,6 +14,7 @@ type Car struct {
 	Ean                            string
 	Connected                      bool
 	consumptionKwSincePreviousTime float32
+	Soc                            float32
 }
 
 func getActiveCars(token string) []Car {
@@ -58,6 +59,7 @@ func getActiveCars(token string) []Car {
 		if gjson.Get(value.Raw, "assetMode").Str == "Steered" {
 			car.consumptionKwSincePreviousTime = float32(gjson.Get(value.Raw, "consumption").Num)
 		}
+		car.Soc = float32(gjson.Get(value.Raw, "soc").Num)
 
 		cars = append(cars, car)
 		//log.Println(cars)
@@ -92,7 +94,7 @@ type ProductionRequestData struct {
 	Requests    []InvidualProductionRequest `json:"requests"`
 }
 
-func steeringRequest(token string, currentTime string, cars []Car, charge bool) {
+func steeringRequest(token string, currentTime string, cars []Car, charge bool, carMinChargeLevels map[string]float32) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
@@ -103,9 +105,15 @@ func steeringRequest(token string, currentTime string, cars []Car, charge bool) 
 	dataRequest := SteeringRequestData{}
 	dataRequest.RequestTime = roundToNext20Seconds(currentTime)
 	for _, car := range cars {
+		rechargeAnyway := false
+		if carMinChargeLevel, ok := carMinChargeLevels[car.Ean]; ok {
+			rechargeAnyway = carMinChargeLevel > car.Soc
+			log.Println("#### Car", car.Ean, "recharging to minimum level of", car.Soc, " ####")
+		}
+
 		var request InvidualSteeringRequest
 		request.Ean = car.Ean
-		if car.Connected && charge {
+		if (car.Connected && charge) || rechargeAnyway {
 			request.Steered = true
 			request.RequestedConsumption = 22
 		} else {
