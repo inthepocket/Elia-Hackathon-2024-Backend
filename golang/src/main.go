@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -93,38 +92,30 @@ func main() {
 		query := r.URL.Query()
 
 		ean := query.Get("ean")
-		if ean == "" {
-			http.Error(w, "Missing required 'ean' query parameter", http.StatusBadRequest)
+		if ean != "" {
+
+			vehicleResponse, err := getVehicleData(mongo, ean, accessToken)
+
+			if err != nil {
+				http.Error(w, "Error getting vehicle data", http.StatusInternalServerError)
+				return
+			}
+
+			// Write the response
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(vehicleResponse); err != nil {
+				log.Printf("Error encoding response: %s\n", err)
+			}
 			return
-		}
+		} else {
+			vehicles := getAllVehicles(mongo)
 
-		vehicle := getVehicleByEan(mongo, ean)
+			// Write the response
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(vehicles); err != nil {
+				log.Printf("Error encoding response: %s\n", err)
+			}
 
-		assetState, err := getCurrentAssetState(accessToken, ean)
-
-		if err != nil {
-			http.Error(w, "Error getting site state", http.StatusInternalServerError)
-			return
-		}
-
-		log.Println("Asset state:", assetState)
-
-		assetSessionsLast24h, _ := getAssetSessionsForDay(accessToken, ean, time.Now().Format(time.RFC3339))
-		// if err != nil {
-		// 	assetSessionsLast24h = []Session{}
-		// 	return
-		// }
-
-		vehicleResponse := VehicleResponse{
-			Metadata:            vehicle,
-			CurrentState:        *assetState,
-			SessionsLast24hours: assetSessionsLast24h,
-		}
-
-		// Write the response
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(vehicleResponse); err != nil {
-			log.Printf("Error encoding response: %s\n", err)
 		}
 
 	})

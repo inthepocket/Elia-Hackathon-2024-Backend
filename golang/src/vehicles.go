@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -65,4 +67,31 @@ func getVehicleByEan(mongo *mongo.Client, ean string) Vehicle {
 	}
 
 	return vehicle
+}
+
+func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (VehicleResponse, error) {
+	vehicle := getVehicleByEan(mongo, ean)
+
+	assetState, err := getCurrentAssetState(accessToken, ean)
+
+	if err != nil {
+		assetState = nil
+		return VehicleResponse{}, err
+	}
+
+	log.Println("Asset state:", assetState)
+
+	assetSessionsLast24h, _ := getAssetSessionsForDay(accessToken, ean, time.Now().Format(time.RFC3339))
+	// if err != nil {
+	// 	assetSessionsLast24h = []Session{}
+	// 	return
+	// }
+
+	vehicleResponse := VehicleResponse{
+		Metadata:            vehicle,
+		CurrentState:        *assetState,
+		SessionsLast24hours: assetSessionsLast24h,
+	}
+
+	return vehicleResponse, nil
 }
