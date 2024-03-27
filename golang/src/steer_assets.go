@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"time"
 )
 
@@ -47,7 +48,7 @@ func steerAssets(token string) {
 		log.Println("### roofPrices:", roofPrices.RoofComfort, roofPrices.RoofMax)
 		// Get real-time price
 		currentRealTimePrice, err := getRealTimePrice(token, currentHackathonTime)
-		if err != nil {
+		if err != nil || math.Abs(currentRealTimePrice) < 0.001 {
 			log.Println("###### No real time price available ", err)
 			continue
 		}
@@ -66,7 +67,7 @@ func steerAssets(token string) {
 			reward := car.consumptionKwSincePreviousTime * float32(timeDiffSeconds(previousHackathonTime, currentHackathonTime)*currentRealTimePrice/1000/3600)
 			log.Println(car.Ean, "Reward: ", reward)
 
-			addReward(getMongoClient(), car.Ean, float64(reward))
+			//addReward(getMongoClient(), car.Ean, float64(reward))
 		}
 
 		if roofPrices.RoofMax > float32(currentRealTimePrice) {
@@ -74,7 +75,7 @@ func steerAssets(token string) {
 		} else {
 			log.Println("DO NOT CHARGE")
 		}
-		//steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice))
+		steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice))
 
 	}
 
