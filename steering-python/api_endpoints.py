@@ -78,8 +78,8 @@ async def calculate_roof_price_per_quarter(request: Request):
     highest_price_in_lowest_hours_max = df[df['is_in_lowest_hours_max']][price_column_name].max()
 
     try:
-        last_hour_comfort = df[df['is_in_lowest_hours_comfort']].index[-1]
-        last_hour_max = df[df['is_in_lowest_hours_max']].index[-1]
+        last_hour_comfort = int(df[df['is_in_lowest_hours_comfort']].index[-1])
+        last_hour_max = int(df[df['is_in_lowest_hours_max']].index[-1])
     except IndexError:
         last_hour_comfort = 0
         last_hour_max = 0
