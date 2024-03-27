@@ -178,7 +178,11 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 }
 
 func getCurrentAssetState(token, ean string) (*AssetState, error) {
-	hackathonTime := getCurrentHackathonTime(token)
+	hackathonTime, err := getCurrentHackathonTime(token)
+	if err != nil {
+		log.Println("Error getting hackathon time: ", err.Error())
+		return nil, err
+	}
 
 	parsedDate, err := time.Parse(time.RFC3339, hackathonTime)
 	if err != nil {

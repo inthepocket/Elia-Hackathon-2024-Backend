@@ -17,6 +17,7 @@ type Vehicle struct {
 	RangeKm  int     `bson:"range"`
 	Ean      string  `bson:"ean"`
 	KmPerKwh float64 `bson:"kmPerKwh"`
+	Reward   float64 `bson:"reward"`
 }
 
 type VehicleResponse struct {
@@ -94,4 +95,17 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 	}
 
 	return vehicleResponse, nil
+}
+
+func addReward(mongo *mongo.Client, ean string, reward float64) {
+	vehicle := getVehicleByEan(mongo, ean)
+	//assetState, err := getCurrentAssetState(accessToken, ean)
+
+	coll := mongo.Database("api").Collection("vehicles")
+	ctx := context.TODO()
+	coll.UpdateOne(ctx, bson.M{"ean": ean}, bson.D{
+		{"$set", bson.D{
+			{"reward", vehicle.Reward + reward},
+		}}})
+
 }

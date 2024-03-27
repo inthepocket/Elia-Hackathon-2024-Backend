@@ -7,18 +7,30 @@ import (
 
 func steerAssets(token string) {
 
+	previousHackathonTime := ""
+	currentHackathonTime := ""
 	currentDateString := ""
 	var roofPrices RoofPrices
 
 	for {
+		time.Sleep(time.Second * 2)
+		log.Println("### Starting")
+
 		// Get date of current day
-		currentHackathonTime := getCurrentHackathonTime(token)
-		newDateString := getDateString(currentHackathonTime)
+		previousHackathonTime = currentHackathonTime
+		newHackathonTime, err := getCurrentHackathonTime(token)
+		if err != nil || newHackathonTime == "" {
+			log.Println("###### No hackathon time available", err)
+			continue
+		}
+		currentHackathonTime = newHackathonTime
 		log.Println("### Current time:", currentHackathonTime)
+		newDateString := getDateString(currentHackathonTime)
 
 		// If start of new day (or need not set)
 		if newDateString != currentDateString {
 			log.Println("### Starting new day", newDateString)
+
 			currentDateString = newDateString
 
 			// Calculate or assume new need
@@ -34,7 +46,11 @@ func steerAssets(token string) {
 
 		log.Println("### roofPrices:", roofPrices.RoofComfort, roofPrices.RoofMax)
 		// Get real-time price
-		currentRealTimePrice := getRealTimePrice(token, currentHackathonTime)
+		currentRealTimePrice, err := getRealTimePrice(token, currentHackathonTime)
+		if err != nil {
+			log.Println("###### No real time price available ", err)
+			continue
+		}
 		log.Println("### real time price:", currentRealTimePrice)
 
 		// If real-time price < roof => charge
@@ -45,15 +61,20 @@ func steerAssets(token string) {
 		cars := getActiveCars(token)
 		log.Println("###", "Cars", cars)
 
+		for _, car := range cars {
+			//log.Println(car.consumptionKwSincePreviousTime, timeDiffSeconds(previousHackathonTime, currentHackathonTime), currentRealTimePrice)
+			reward := car.consumptionKwSincePreviousTime * float32(timeDiffSeconds(previousHackathonTime, currentHackathonTime)*currentRealTimePrice/1000/3600)
+			log.Println(car.Ean, "Reward: ", reward)
+
+			addReward(getMongoClient(), car.Ean, float64(reward))
+		}
+
 		if roofPrices.RoofMax > float32(currentRealTimePrice) {
-			//if true {
 			log.Println("CHARGE")
 		} else {
 			log.Println("DO NOT CHARGE")
 		}
-		steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice))
-
-		time.Sleep(time.Second * 2)
+		//steeringRequest(token, currentHackathonTime, cars, roofPrices.RoofMax > float32(currentRealTimePrice))
 
 	}
 

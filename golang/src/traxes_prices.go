@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/url"
 	"os"
@@ -27,11 +28,14 @@ func getDayAheadPrices(token string, dateString string) string {
 	return string(body)
 }
 
-func getLastPriceEstimate(priceEstimatesJson string) float64 {
+func getLastPriceEstimate(priceEstimatesJson string) (float64, error) {
 	//log.Println("//////////////////")
 	//log.Println(priceEstimatesJson)
 	l := gjson.Get(priceEstimatesJson, "$values.0.priceEstimations.$values")
 	//log.Println(l)
+	if len(l.Array()) == 0 {
+		return 0, errors.New("Invalid price estimate")
+	}
 	item := l.Array()[len(l.Array())-1]
 	//log.Println(item)
 	//log.Println(item.Raw)
@@ -39,10 +43,10 @@ func getLastPriceEstimate(priceEstimatesJson string) float64 {
 	//log.Println(price.Raw)
 	floatPrice, _ := strconv.ParseFloat(price.Raw, 32)
 	//log.Println(floatPrice)
-	return floatPrice
+	return floatPrice, nil
 }
 
-func getRealTimePrice(token string, realTime string) float64 {
+func getRealTimePrice(token string, realTime string) (float64, error) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}

@@ -11,8 +11,9 @@ import (
 )
 
 type Car struct {
-	Ean       string
-	Connected bool
+	Ean                            string
+	Connected                      bool
+	consumptionKwSincePreviousTime float32
 }
 
 func getActiveCars(token string) []Car {
@@ -54,6 +55,9 @@ func getActiveCars(token string) []Car {
 		var car Car
 		car.Ean = gjson.Get(value.Raw, "ean").Str
 		car.Connected = gjson.Get(value.Raw, "connected").Bool()
+		if gjson.Get(value.Raw, "assetMode").Str == "Steered" {
+			car.consumptionKwSincePreviousTime = float32(gjson.Get(value.Raw, "consumption").Num)
+		}
 
 		cars = append(cars, car)
 		//log.Println(cars)

@@ -14,7 +14,7 @@ type HackathonTimeResponse struct {
 	HackathonTime string `json:"hackathonTime"`
 }
 
-func getCurrentHackathonTime(token string) string {
+func getCurrentHackathonTime(token string) (string, error) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
@@ -22,6 +22,7 @@ func getCurrentHackathonTime(token string) string {
 	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "GET", "/times/HackathonTimeForNow", headers, nil, nil)
 	if err != nil {
 		log.Println("Error on dispatching request. ", err.Error())
+		return "", err
 	}
 
 	var hackathonTimeResponse HackathonTimeResponse
@@ -29,7 +30,7 @@ func getCurrentHackathonTime(token string) string {
 		log.Println(err)
 	}
 
-	return hackathonTimeResponse.HackathonTime
+	return hackathonTimeResponse.HackathonTime, nil
 }
 
 func getDateString(hackathonTime string) string {
@@ -122,4 +123,12 @@ func getHackathonTime(token, realTime string) (string, error) {
 	}
 
 	return hackathonTimeResponse.HackathonTime, nil
+}
+
+func timeDiffSeconds(start string, stop string) float64 {
+	parsedStart, _ := time.Parse(time.RFC3339, start)
+	parsedStop, _ := time.Parse(time.RFC3339, stop)
+	diff := parsedStop.Sub(parsedStart)
+	//log.Println(parsedStart, parsedStop, diff)
+	return diff.Seconds()
 }
