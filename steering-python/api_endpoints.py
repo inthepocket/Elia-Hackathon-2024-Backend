@@ -56,23 +56,23 @@ async def calculate_roof_price_per_quarter(request: Request):
     ev_charging_hours_count_comfort = ev_comfort_charge_capacity_kwh / ev_charged_per_hour
     ev_charging_hours_count_max = ev_max_charge_capacity_kwh / ev_charged_per_hour
     total_hours_count = len(df)
-    ic(ev_charging_hours_count_comfort, ev_charging_hours_count_max, total_hours_count)
+    # ic(ev_charging_hours_count_comfort, ev_charging_hours_count_max, total_hours_count)
 
-    ic(ev_charging_hours_count_comfort / total_hours_count)
+    # ic(ev_charging_hours_count_comfort / total_hours_count)
 
     percent_of_hours_needed_comfort = ev_charging_hours_count_comfort / total_hours_count
     percent_of_hours_needed_max = ev_charging_hours_count_max / total_hours_count
-    ic(percent_of_hours_needed_comfort, percent_of_hours_needed_max)
+    # ic(percent_of_hours_needed_comfort, percent_of_hours_needed_max)
 
     percent_of_hours_needed_comfort = percent_of_hours_needed_comfort * (1 + buffer)
     percent_of_hours_needed_max = percent_of_hours_needed_max * (1 + buffer)
-    ic(percent_of_hours_needed_comfort, percent_of_hours_needed_max)
+    # ic(percent_of_hours_needed_comfort, percent_of_hours_needed_max)
 
     df['is_in_lowest_hours_comfort'] = df[price_column_name] <= df[price_column_name].quantile(percent_of_hours_needed_comfort)
     df['is_in_lowest_hours_max'] = df[price_column_name] <= df[price_column_name].quantile(percent_of_hours_needed_max)
 
     pd.set_option('display.max_rows', None)
-    print(df)
+    # print(df)
 
     highest_price_in_lowest_hours_comfort = df[df['is_in_lowest_hours_comfort']][price_column_name].max()
     highest_price_in_lowest_hours_max = df[df['is_in_lowest_hours_max']][price_column_name].max()
@@ -95,4 +95,5 @@ async def calculate_roof_price_per_quarter(request: Request):
         "last_hour_comfort": last_hour_comfort,
         "last_hour_max": last_hour_max
     }
+
 
