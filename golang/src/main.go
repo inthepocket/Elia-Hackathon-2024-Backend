@@ -33,11 +33,11 @@ func main() {
 		log.Println("No .env file found")
 	}
 
-	// mongo := getMongoClient()
+	mongo := getMongoClient()
 
-	// vehicles := getAllVehicles(mongo)
+	vehicles := getAllVehicles(mongo)
 
-	// log.Println("Vehicles:", vehicles)
+	log.Println("Vehicles:", vehicles[0])
 
 	accessToken := GetAccessToken()
 
@@ -52,6 +52,7 @@ func main() {
 
 		ean := query.Get("ean")
 		realTime := query.Get("realTime")
+
 		if ean == "" {
 			http.Error(w, "Missing required 'ean' query parameter", http.StatusBadRequest)
 			return
@@ -75,8 +76,7 @@ func main() {
 		}
 
 		if sessions == nil {
-			http.Error(w, "No sessions found", http.StatusNotFound)
-			return
+			sessions = []Session{}
 		}
 
 		// Write the response
@@ -86,8 +86,51 @@ func main() {
 		}
 	})
 
-	time.Sleep(time.Second * 5)
-	go steerAssets(accessToken)
+	mux.HandleFunc("/vehicles", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("received GET /vehicles", r)
+
+		// Parse the query parameters
+		query := r.URL.Query()
+
+		ean := query.Get("ean")
+		if ean == "" {
+			http.Error(w, "Missing required 'ean' query parameter", http.StatusBadRequest)
+			return
+		}
+
+		vehicle := getVehicleByEan(mongo, ean)
+
+		assetState, err := getCurrentAssetState(accessToken, ean)
+
+		if err != nil {
+			http.Error(w, "Error getting site state", http.StatusInternalServerError)
+			return
+		}
+
+		log.Println("Asset state:", assetState)
+
+		assetSessionsLast24h, _ := getAssetSessionsForDay(accessToken, ean, time.Now().Format(time.RFC3339))
+		// if err != nil {
+		// 	assetSessionsLast24h = []Session{}
+		// 	return
+		// }
+
+		vehicleResponse := VehicleResponse{
+			Metadata:            vehicle,
+			CurrentState:        *assetState,
+			SessionsLast24hours: assetSessionsLast24h,
+		}
+
+		// Write the response
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(vehicleResponse); err != nil {
+			log.Printf("Error encoding response: %s\n", err)
+		}
+
+	})
+
+	// time.Sleep(time.Second * 5)
+	// go steerAssets(accessToken)
 
 	server := http.Server{
 		Addr:    ":80",
