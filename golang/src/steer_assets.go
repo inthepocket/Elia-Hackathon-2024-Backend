@@ -91,8 +91,8 @@ func steerBattery(token string) {
 			continue
 		}
 		realTimePrice, err := getRealTimePrice(token, hackathonTime)
-		if err != nil {
-			log.Println("Error on getting real time price. ", err.Error())
+		if err != nil || math.Abs(realTimePrice) < 0.001 {
+			log.Println("###### No real time price available ", err)
 			continue
 		}
 
