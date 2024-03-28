@@ -59,25 +59,6 @@ func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
 	}
 }
 
-func getSessionsForRange(mongo *mongo.Client, ean string, start, end time.Time) ([]Session, error) {
-	sessions, err := getSessionsForVehicle(mongo, ean)
-	if err != nil {
-		log.Println("Error getting sessions for vehicle: ", err.Error())
-		return nil, err
-	}
-
-	log.Println("Got sessions for vehicle: ", len(sessions))
-
-	filteredSessions, err := filterSessionsByRange(sessions, start, end)
-
-	if err != nil {
-		log.Println("Error filtering sessions by range: ", err.Error())
-		return nil, err
-	}
-
-	return filteredSessions, nil
-}
-
 func getMostRecentVehicleSession(mongo *mongo.Client, ean string) (*Session, error) {
 	coll := mongo.Database("api").Collection("sessions")
 	ctx := context.TODO()
@@ -117,19 +98,4 @@ func getSessionsForVehicle(mongo *mongo.Client, ean string) ([]Session, error) {
 		sessions = append(sessions, session)
 	}
 	return sessions, nil
-}
-
-func filterSessionsByRange(sessions []Session, start, end time.Time) ([]Session, error) {
-	var filteredSessions []Session
-	for _, session := range sessions {
-		sessionTime, err := time.Parse(time.RFC3339, session.StartState.StateTime)
-		if err != nil {
-			log.Println("Error parsing session time: ", err.Error())
-			return nil, err
-		}
-		if sessionTime.After(start) && sessionTime.Before(end) {
-			filteredSessions = append(filteredSessions, session)
-		}
-	}
-	return filteredSessions, nil
 }

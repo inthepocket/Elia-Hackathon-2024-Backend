@@ -24,7 +24,6 @@ type Vehicle struct {
 type VehicleResponse struct {
 	Metadata          Vehicle
 	CurrentState      AssetState
-	MostRecentSession Session
 	SessionsLast5Days []Session
 }
 
@@ -78,20 +77,11 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 		return VehicleResponse{}, err
 	}
 
-	log.Println("Vehicle:", vehicle)
-
-	mostRecentVehicleSession, err := getMostRecentVehicleSession(mongo, ean)
-	if err != nil {
-		mostRecentVehicleSession = nil
-	}
-
 	assetState, err := getCurrentAssetState(accessToken, ean)
 	if err != nil {
 		assetState = nil
 		return VehicleResponse{}, err
 	}
-
-	log.Println("Asset state:", assetState)
 
 	// now := time.Now()
 	// sessions := []Session{}
@@ -99,8 +89,6 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 	if err != nil {
 		log.Println("Error getting asset sessions from Mongo: ", err)
 	}
-
-	log.Println("Asset sessions Mongo:", assetSessionsMongo)
 
 	// for i := 0; i < 5; i++ {
 	// 	date := now.Add(time.Duration(-i*72) * time.Minute)
@@ -118,7 +106,6 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 
 	vehicleResponse := VehicleResponse{
 		Metadata:          vehicle,
-		MostRecentSession: *mostRecentVehicleSession,
 		CurrentState:      *assetState,
 		SessionsLast5Days: assetSessionsMongo,
 	}

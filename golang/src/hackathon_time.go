@@ -26,8 +26,6 @@ func getCurrentHackathonTime(token string) (string, error) {
 		return "", err
 	}
 
-	log.Println(string(body))
-
 	var hackathonTimeResponse HackathonTimeResponse
 	if err := json.Unmarshal(body, &hackathonTimeResponse); err != nil {
 		log.Println(err)
