@@ -167,19 +167,3 @@ func getAndStoreVehicleSessions(mongo *mongo.Client, accessToken string, ean str
 	}
 
 }
-
-func getAllVehiclesAndStoreSessions(mongo *mongo.Client, accessToken string) {
-	for {
-		time.Sleep(time.Minute)
-
-		vehicles, err := getAllVehicles(mongo)
-
-		if err != nil {
-			continue
-		}
-
-		for _, vehicle := range vehicles {
-			getAndStoreVehicleSessions(mongo, accessToken, vehicle.Ean)
-		}
-	}
-}

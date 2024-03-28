@@ -4,11 +4,13 @@ import (
 	"log"
 	"math"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var eans []string = []string{"541983310278725782", "541792416037150809", "541480930594258894", "541261957970628703", "541560923639711466"}
 
-func steerAssets(token string) {
+func steerAssets(token string, mongo *mongo.Client) {
 
 	previousHackathonTime := ""
 	currentHackathonTime := ""
@@ -42,6 +44,7 @@ func steerAssets(token string) {
 			state, err := getCurrentAssetState(token, ean, currentHackathonTime)
 			if state.Connected == false {
 				continue
+
 			}
 
 			var expectedKwhToCharge int = 100.0
@@ -119,7 +122,7 @@ func steerAssets(token string) {
 			log.Println("###### Flushing to MongoDb")
 			for _, car := range cars {
 				if carReward, ok := carRewards[car.Ean]; ok {
-					addReward(getMongoClient(), car.Ean, float64(carReward))
+					addReward(mongo, car.Ean, float64(carReward))
 				}
 				carRewards[car.Ean] = 0
 			}
