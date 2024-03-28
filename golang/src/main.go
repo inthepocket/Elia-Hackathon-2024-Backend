@@ -103,6 +103,21 @@ func main() {
 			if err := json.NewEncoder(w).Encode(vehicleResponse); err != nil {
 				log.Printf("Error encoding response: %s\n", err)
 			}
+			// var currentState map[string]interface{}
+			// if err := json.Unmarshal(body, &currentState); err != nil {
+			// 	log.Printf("Error decoding vehicle response: %s\n", err)
+			// 	return
+			// }
+
+			// soc, ok := currentState["CurrentState"].(map[string]interface{})["soc"].(float64)
+			// if !ok {
+			// 	log.Println("Error retrieving soc value")
+			// 	return
+			// }
+			// soc := vehicleResponse.CurrentState.Soc
+
+			// log.Println("soc:", soc)
+
 			return
 		} else {
 			vehicles, err := getAllVehicles(mongo)
@@ -123,7 +138,7 @@ func main() {
 	})
 
 	time.Sleep(time.Second * 5)
-	go steerBattery(accessToken)
+	// go steerBattery(accessToken)
 	//go steerAssets(accessToken, mongo)
 	go getAndStoreCurrentSessions(accessToken, mongo)
 

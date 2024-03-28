@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log"
+	"net/url"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -23,6 +27,7 @@ type Session struct {
 	StartState        *AssetState `json:"StartState"`
 	EndState          *AssetState `json:"EndState"`
 	ChargePeriods     []ChargePeriod
+	Trivia            string
 }
 
 func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
@@ -53,6 +58,35 @@ func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
 				if err != nil {
 					log.Println("Error upserting session: ", err.Error())
 				}
+				log.Println("/// boomerise_it")
+				headers := map[string]string{}
+				headers["Content-Type"] = "application/json"
+				params := url.Values{}
+
+				if session.EndState == nil {
+					session.Trivia = "Charging up 60 kWh - that's like fueling up a '60s VW Beetle for a spin around Woodstock!"
+					continue
+				}
+
+				// total charged kwh
+				totalChargedKwh := float32(0)
+				for _, chargePeriod := range session.ChargePeriods {
+					totalChargedKwh += chargePeriod.ChargedKwh
+				}
+
+				dataJson := fmt.Sprintf("{\"ean\": %s, \"state_time\": %s, \"energy_kwh\": %d}",
+					session.StartState.Ean,
+					session.StartState.StateTime,
+					totalChargedKwh)
+
+				// log.Println(dataJson)
+
+				body, err := makeRequest(os.Getenv("STEERING_PYTHON_URI"), "POST", "/boomerise_it", headers, params, bytes.NewBuffer([]byte(dataJson)))
+				if err != nil {
+					log.Fatal("Error on dispatching request. ", err.Error())
+				}
+				// log.Println(string(body))
+				session.Trivia = string(body)
 			}
 
 		}
