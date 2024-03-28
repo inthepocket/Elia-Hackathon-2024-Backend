@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -59,7 +60,7 @@ func steerAssets(token string, mongo *mongo.Client) {
 				log.Println(err)
 			} else {
 				roofPrices[ean] = roofPrice
-				//setLastHourMax(getMongoClient(), ean, fmt.Sprintf("%d:00:00", int(roofPrice.LastHourMax)))
+				setLastHourMax(mongo, ean, fmt.Sprintf("%d:00:00", int(roofPrice.LastHourMax)))
 			}
 
 		}
