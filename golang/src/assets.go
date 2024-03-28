@@ -200,13 +200,7 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 	return sessions, nil
 }
 
-func getCurrentAssetState(token, ean string) (*AssetState, error) {
-	hackathonTime, err := getCurrentHackathonTime(token)
-	if err != nil {
-		log.Println("Error getting hackathon time: ", err.Error())
-		return nil, err
-	}
-
+func getCurrentAssetState(token, ean string, hackathonTime string) (*AssetState, error) {
 	parsedDate, err := time.Parse(time.RFC3339, hackathonTime)
 	if err != nil {
 		log.Println("Error parsing date: ", err.Error())
@@ -216,7 +210,7 @@ func getCurrentAssetState(token, ean string) (*AssetState, error) {
 	startDate := parsedDate.Add(-40 * time.Second).Format(time.RFC3339)
 	endDate := parsedDate.Add(-20 * time.Second).Format(time.RFC3339)
 
-	log.Println("Current time: ", startDate, endDate)
+	//log.Println("Current time: ", startDate, endDate)
 
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
@@ -233,7 +227,7 @@ func getCurrentAssetState(token, ean string) (*AssetState, error) {
 		return nil, err
 	}
 
-	log.Println("Asset state response: ", string(body))
+	//log.Println("Asset state response: ", string(body))
 
 	type AssetStateApiResponse struct {
 		ID     string       `json:"$id"`

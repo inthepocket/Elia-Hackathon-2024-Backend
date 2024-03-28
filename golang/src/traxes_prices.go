@@ -3,21 +3,24 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/tidwall/gjson"
 )
 
-func getDayAheadPrices(token string, dateString string) string {
+func getDayAheadPrices(token string, dateString string, currentDateString string) string {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
 
 	params := url.Values{}
-	params.Add("startDate", dateString+"T00:15:00+01:00")
+	time, _ := time.Parse(time.RFC3339, currentDateString)
+	params.Add("startDate", dateString+fmt.Sprintf("T%02d:15:00+01:00", time.Hour()))
 	params.Add("endDate", getNextDay(dateString)+"T00:15:00+01:00")
 	log.Println("/// getDayAheadPrices ", params)
 

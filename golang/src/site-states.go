@@ -93,7 +93,7 @@ type ProductionRequestData struct {
 	Requests    []InvidualProductionRequest `json:"requests"`
 }
 
-func steeringRequest(token string, currentTime string, cars []Car, charge bool, carMinChargeLevels map[string]float32) {
+func steeringRequest(token string, currentTime string, cars []Car, charge map[string]bool, carMinChargeLevels map[string]float32) {
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
@@ -112,7 +112,7 @@ func steeringRequest(token string, currentTime string, cars []Car, charge bool, 
 
 		var request InvidualSteeringRequest
 		request.Ean = car.Ean
-		if (car.Connected && charge) || rechargeAnyway {
+		if (car.Connected && charge[car.Ean]) || rechargeAnyway {
 			request.Steered = true
 			request.RequestedConsumption = 22
 		} else {
@@ -126,14 +126,14 @@ func steeringRequest(token string, currentTime string, cars []Car, charge bool, 
 	//log.Println("dataRequest", dataRequest)
 	jsonDataRequest, _ := json.Marshal([]SteeringRequestData{dataRequest})
 
-	log.Println("######### REQUEST ############")
+	log.Println("######### STEERING REQUEST ############")
 	log.Println(string(jsonDataRequest))
 	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(jsonDataRequest)))
 	if err != nil {
 		log.Println("Error on dispatching request. ", err.Error())
 	}
-	log.Println(string(body))
-	log.Println("#####################")
+	log.Println("Steering request response", string(body))
+	//log.Println("#####################")
 
 }
 
@@ -166,13 +166,13 @@ func steeringRequestBattery(token string, currentTime string, charge bool) {
 
 	params := url.Values{}
 
-	log.Println("######### REQUEST ############")
-	log.Println(string(data))
+	//log.Println("######### REQUEST ############")
+	//log.Println(string(data))
 	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(data)))
 	if err != nil {
 		log.Println("Error on dispatching request. ", err.Error())
 	}
-	log.Println(string(body))
-	log.Println("#####################")
+	log.Println("Battery request response", string(body))
+	//log.Println("#####################")
 
 }

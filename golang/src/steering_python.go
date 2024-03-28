@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -15,8 +16,8 @@ type RoofPrices struct {
 	LastHourMax float32 `json:"last_hour_max"`
 }
 
-func calculateRoofPricePerQuarter(dayAheadPricesJson string, evComfortChargeCapacityKwh int, evMaxChargeCapacityKwh int, bufferPerc float32) RoofPrices {
-	log.Println("/// calculateRoofPricePerQuarter")
+func calculateRoofPricePerQuarter(dayAheadPricesJson string, evComfortChargeCapacityKwh int, evMaxChargeCapacityKwh int, bufferPerc float32) (RoofPrices, error) {
+	log.Println("/// calculateRoofPricePerQuarter", evComfortChargeCapacityKwh, evMaxChargeCapacityKwh, bufferPerc)
 	headers := map[string]string{}
 	headers["Content-Type"] = "application/json"
 	params := url.Values{}
@@ -27,18 +28,19 @@ func calculateRoofPricePerQuarter(dayAheadPricesJson string, evComfortChargeCapa
 		evMaxChargeCapacityKwh,
 		bufferPerc)
 
-	log.Println(dataJson)
+	//log.Println(dataJson)
 
 	body, err := makeRequest(os.Getenv("STEERING_PYTHON_URI"), "POST", "/calculate_roof_price_per_quarter", headers, params, bytes.NewBuffer([]byte(dataJson)))
 	if err != nil {
-		log.Fatal("Error on dispatching request. ", err.Error())
+		return RoofPrices{}, err
 	}
-	log.Println(string(body))
+	//log.Println(string(body))
 
 	var roofPriceResponse RoofPrices
 	if err := json.Unmarshal(body, &roofPriceResponse); err != nil {
-		log.Println(err)
+		//log.Println("Error in steering-python", err)
+		return RoofPrices{}, errors.New("Error in steering-python")
 	}
-	return roofPriceResponse
+	return roofPriceResponse, nil
 
 }

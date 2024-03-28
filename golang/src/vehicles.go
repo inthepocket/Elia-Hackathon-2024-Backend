@@ -79,7 +79,13 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 
 	log.Println("Vehicle:", vehicle)
 
-	assetState, err := getCurrentAssetState(accessToken, ean)
+	hackathonTime, err := getCurrentHackathonTime(accessToken)
+	if err != nil {
+		log.Println("Error getting hackathon time: ", err.Error())
+		return VehicleResponse{}, err
+	}
+
+	assetState, err := getCurrentAssetState(accessToken, ean, hackathonTime)
 	if err != nil {
 		assetState = nil
 		return VehicleResponse{}, err
