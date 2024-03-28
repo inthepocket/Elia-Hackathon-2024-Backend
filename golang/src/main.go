@@ -141,7 +141,7 @@ func main() {
 
 	time.Sleep(time.Second * 5)
 
-	go steerBatteryAndSolar(accessToken)
+	// go steerBatteryAndSolar(accessToken)
 	//go steerAssets(accessToken, mongo)
 	go getAndStoreCurrentSessions(accessToken, mongo)
 

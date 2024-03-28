@@ -70,9 +70,9 @@ func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
 				}
 
 				// total charged kwh
-				totalChargedKwh := float32(0)
+				totalChargedKwh := int32(0)
 				for _, chargePeriod := range session.ChargePeriods {
-					totalChargedKwh += chargePeriod.ChargedKwh
+					totalChargedKwh += int32(chargePeriod.ChargedKwh)
 				}
 
 				dataJson := fmt.Sprintf("{\"ean\": %s, \"state_time\": %s, \"energy_kwh\": %d}",
@@ -80,13 +80,14 @@ func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
 					session.StartState.StateTime,
 					totalChargedKwh)
 
+				log.Println("/// boomerise_it -- about to log dataJson")
 				// log.Println(dataJson)
 
 				body, err := makeRequest(os.Getenv("STEERING_PYTHON_URI"), "POST", "/boomerise_it", headers, params, bytes.NewBuffer([]byte(dataJson)))
 				if err != nil {
 					log.Fatal("Error on dispatching request. ", err.Error())
 				}
-				// log.Println(string(body))
+				log.Println(string(body))
 				session.Trivia = string(body)
 			}
 
