@@ -1,3 +1,4 @@
+import os
 import json
 import datetime
 from typing import Union, List
@@ -7,9 +8,16 @@ from pydantic import BaseModel
 import pandas as pd
 from icecream import ic
 
+from openai import OpenAI
+import openai
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI()
 
 router = APIRouter()
 
+
+trivia_dict = {}
 
 
 @router.post("/process")
@@ -95,5 +103,46 @@ async def calculate_roof_price_per_quarter(request: Request):
         "last_hour_comfort": last_hour_comfort,
         "last_hour_max": last_hour_max
     }
+
+
+
+
+
+def openai_call_wrapper(messages):
+    response = client.chat.completions.create(
+        model="gpt-4-1106-preview",
+        messages=messages,
+        temperature=1.0,
+    )
+    return response.choices[0].message.content
+
+
+@router.post("/boomerise_it")
+async def boomerise_it(request: Request):
+
+    global trivia_dict
+    print("response")
+
+    # trivia_dict = {"1234": (60, "You could charge 10 tamagochis with that energy!")}
+
+    body_dict = await request.json()
+    
+    energy_kwh = int(body_dict.get("energy_kwh"))
+    ean = body_dict.get("ean")
+    state_time = body_dict.get("state_time")
+    session_id = ean + "_" + state_time
+    print(ean, session_id)
+
+    if ean in trivia_dict:
+        if trivia_dict.get(session_id)[0] == energy_kwh:
+            print("Returning from cache")
+            return trivia_dict.get(session_id)
+    
+    print("Updating cache")
+    prompt = f"How would you convert {energy_kwh} kWh into a unit of energy that boomers would understand? E.g., for millennials it would be how many tamagochis they could charge. Make it short and funny, something that would be in an app. Return just the copy. It should be max one sentence and start with: '{energy_kwh} kWh — that's enough energy to power...'. Return the whole sentence and nothing else."
+    response = openai_call_wrapper([{"role": "system", "content": prompt}])
+    trivia_dict[session_id] = (energy_kwh, response)
+    ic(trivia_dict)
+    return response
 
 
