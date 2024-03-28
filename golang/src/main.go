@@ -123,9 +123,8 @@ func main() {
 	})
 
 	time.Sleep(time.Second * 5)
-	//go steerBattery(accessToken)
-	//go steerAssets(accessToken)
-	//go getAllVehiclesAndStoreSessions(mongo, accessToken)
+	go steerBattery(accessToken)
+	go steerAssets(accessToken, mongo)
 
 	server := http.Server{
 		Addr:    ":80",

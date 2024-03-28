@@ -5,9 +5,11 @@ import (
 	"log"
 	"math"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func steerAssets(token string) {
+func steerAssets(token string, mongo *mongo.Client) {
 
 	previousHackathonTime := ""
 	currentHackathonTime := ""
@@ -50,9 +52,9 @@ func steerAssets(token string) {
 			var expectedKwhToCharge int = 100.0
 			roofPrices = calculateRoofPricePerQuarter(dayAheadPricesJson, expectedKwhToCharge, expectedKwhToCharge, 1.1)
 
-			vehicles, _ := getAllVehicles(getMongoClient())
+			vehicles, _ := getAllVehicles(mongo)
 			for _, vehicle := range vehicles {
-				setLastHourMax(getMongoClient(), vehicle.Ean, fmt.Sprintf("%d:00:00", int(roofPrices.LastHourMax)))
+				setLastHourMax(mongo, vehicle.Ean, fmt.Sprintf("%d:00:00", int(roofPrices.LastHourMax)))
 			}
 		}
 
@@ -111,7 +113,7 @@ func steerAssets(token string) {
 			log.Println("###### Flushing to MongoDb")
 			for _, car := range cars {
 				if carReward, ok := carRewards[car.Ean]; ok {
-					addReward(getMongoClient(), car.Ean, float64(carReward))
+					addReward(mongo, car.Ean, float64(carReward))
 				}
 				carRewards[car.Ean] = 0
 			}
