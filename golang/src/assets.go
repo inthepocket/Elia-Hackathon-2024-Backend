@@ -66,20 +66,6 @@ func getHistoricAssetStates(token, ean, startDate, endDate string) ([]AssetState
 	return assetStatesResponse.Values, nil
 }
 
-type ChargePeriod struct {
-	StartTime  string
-	EndTime    string
-	SocAtStart float32
-	SocAtEnd   float32
-	ChargedKwh float32
-}
-
-type Session struct {
-	StartState    *AssetState `json:"StartState"`
-	EndState      *AssetState `json:"EndState"`
-	ChargePeriods []ChargePeriod
-}
-
 func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 	currentHackathonTime, err := getCurrentHackathonTime(token)
 	if err != nil {
@@ -87,7 +73,11 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 		return nil, err
 	}
 
+	time.Sleep(1 * time.Second)
+
 	hackathonTime, err := getHackathonTime(token, realTime)
+
+	time.Sleep(1 * time.Second)
 
 	if err != nil {
 		log.Println("Error getting hackathon time: ", err.Error())
@@ -129,8 +119,6 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 		return nil, err
 	}
 
-	log.Println("assetStates found: ", len(assetStates))
-
 	//print amount of states with connected true
 	connectedStates := 0
 	for _, state := range assetStates {
@@ -138,11 +126,6 @@ func getAssetSessionsForDay(token, ean, realTime string) ([]Session, error) {
 			connectedStates++
 		}
 	}
-	log.Println("connectedStates: ", connectedStates)
-
-	log.Println("DisconnectedStates: ", len(assetStates)-connectedStates)
-
-	log.Println("\n\r")
 
 	var prevState *AssetState
 
@@ -216,8 +199,6 @@ func getCurrentAssetState(token, ean string) (*AssetState, error) {
 	startDate := parsedDate.Add(-40 * time.Second).Format(time.RFC3339)
 	endDate := parsedDate.Add(-20 * time.Second).Format(time.RFC3339)
 
-	log.Println("Current time: ", startDate, endDate)
-
 	headers := map[string]string{
 		"Authorization": "Bearer " + token,
 	}
@@ -232,8 +213,6 @@ func getCurrentAssetState(token, ean string) (*AssetState, error) {
 		log.Println("Error on dispatching request. ", err.Error())
 		return nil, err
 	}
-
-	log.Println("Asset state response: ", string(body))
 
 	type AssetStateApiResponse struct {
 		ID     string       `json:"$id"`

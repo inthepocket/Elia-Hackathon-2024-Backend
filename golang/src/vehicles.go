@@ -24,6 +24,7 @@ type Vehicle struct {
 type VehicleResponse struct {
 	Metadata          Vehicle
 	CurrentState      AssetState
+	MostRecentSession Session
 	SessionsLast5Days []Session
 }
 
@@ -79,6 +80,11 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 
 	log.Println("Vehicle:", vehicle)
 
+	mostRecentVehicleSession, err := getMostRecentVehicleSession(mongo, ean)
+	if err != nil {
+		mostRecentVehicleSession = nil
+	}
+
 	assetState, err := getCurrentAssetState(accessToken, ean)
 	if err != nil {
 		assetState = nil
@@ -87,27 +93,34 @@ func getVehicleData(mongo *mongo.Client, ean string, accessToken string) (Vehicl
 
 	log.Println("Asset state:", assetState)
 
-	now := time.Now()
-	sessions := []Session{}
-
-	for i := 0; i < 5; i++ {
-		date := now.Add(time.Duration(-i*72) * time.Minute)
-
-		// log.Println("Getting sessions for", date.Format(time.RFC3339))
-		assetSessions, err := getAssetSessionsForDay(accessToken, ean, date.Format(time.RFC3339))
-
-		if err != nil {
-			log.Println("Error getting asset sessions: ", err)
-			continue
-		}
-
-		sessions = append(sessions, assetSessions...)
+	// now := time.Now()
+	// sessions := []Session{}
+	assetSessionsMongo, err := getSessionsForVehicle(mongo, ean)
+	if err != nil {
+		log.Println("Error getting asset sessions from Mongo: ", err)
 	}
+
+	log.Println("Asset sessions Mongo:", assetSessionsMongo)
+
+	// for i := 0; i < 5; i++ {
+	// 	date := now.Add(time.Duration(-i*72) * time.Minute)
+
+	// 	// log.Println("Getting sessions for", date.Format(time.RFC3339))
+	// 	assetSessions, err := getAssetSessionsForDay(accessToken, ean, date.Format(time.RFC3339))
+
+	// 	if err != nil {
+	// 		log.Println("Error getting asset sessions: ", err)
+	// 		continue
+	// 	}
+
+	// 	sessions = append(sessions, assetSessions...)
+	// }
 
 	vehicleResponse := VehicleResponse{
 		Metadata:          vehicle,
+		MostRecentSession: *mostRecentVehicleSession,
 		CurrentState:      *assetState,
-		SessionsLast5Days: sessions,
+		SessionsLast5Days: assetSessionsMongo,
 	}
 
 	return vehicleResponse, nil
