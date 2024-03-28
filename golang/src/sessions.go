@@ -65,8 +65,9 @@ func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
 				params := url.Values{}
 
 				if session.EndState == nil {
+					log.Println("/// boomerise_it -- session.EndState == nil")
 					session.Trivia = "Charging up 60 kWh - that's like fueling up a '60s VW Beetle for a spin around Woodstock!"
-					continue
+					// continue
 				}
 
 				// total charged kwh
@@ -74,6 +75,8 @@ func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
 				for _, chargePeriod := range session.ChargePeriods {
 					totalChargedKwh += int32(chargePeriod.ChargedKwh)
 				}
+
+				totalChargedKwh = int32(60)
 
 				dataJson := fmt.Sprintf("{\"ean\": \"%s\", \"state_time\": \"%s\", \"energy_kwh\": %d}",
 					session.StartState.Ean,
