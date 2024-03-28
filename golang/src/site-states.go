@@ -176,3 +176,43 @@ func steeringRequestBattery(token string, currentTime string, charge bool) {
 	log.Println("#####################")
 
 }
+
+func steeringRequestSolar(token string, currentTime string, produce bool) {
+	var data []byte
+	if produce {
+		dataRequest := ProductionRequestData{}
+		dataRequest.RequestTime = roundToNext20Seconds(currentTime)
+		var request InvidualProductionRequest
+		request.Ean = "541787622019220646"
+		request.Steered = true
+		request.RequestedProduction = 200
+		dataRequest.Requests = append(dataRequest.Requests, request)
+		data, _ = json.Marshal([]ProductionRequestData{dataRequest})
+	} else {
+		dataRequest := ProductionRequestData{}
+		dataRequest.RequestTime = roundToNext20Seconds(currentTime)
+		var request InvidualProductionRequest
+		request.Ean = "541787622019220646"
+		request.Steered = true
+		request.RequestedProduction = 0
+		dataRequest.Requests = append(dataRequest.Requests, request)
+		data, _ = json.Marshal([]ProductionRequestData{dataRequest})
+	}
+
+	headers := map[string]string{
+		"Authorization": "Bearer " + token,
+	}
+	headers["Content-Type"] = "application/json"
+
+	params := url.Values{}
+
+	log.Println("######### REQUEST ############")
+	log.Println(string(data))
+	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(data)))
+	if err != nil {
+		log.Println("Error on dispatching request. ", err.Error())
+	}
+	log.Println(string(body))
+	log.Println("#####################")
+
+}
