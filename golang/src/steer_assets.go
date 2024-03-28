@@ -125,9 +125,9 @@ func steerAssets(token string, mongo *mongo.Client) {
 
 }
 
-func steerBattery(token string) {
+func steerBatteryAndSolar(token string) {
 	for {
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 10)
 
 		hackathonTime, err := getCurrentHackathonTime(token)
 		if err != nil {
@@ -140,48 +140,21 @@ func steerBattery(token string) {
 			continue
 		}
 
-		log.Println("Steering Battery...")
+		log.Println("Steering Battery and Solar...")
 		log.Println("Hackathon Time: ", hackathonTime)
 		log.Println("Real Time Price: ", realTimePrice)
 
 		if realTimePrice < 0 {
-			log.Println("Real time price is negative, charge battery")
+			log.Println("Real time price is negative, charge battery and stop producing solar energy")
 			steeringRequestBattery(token, hackathonTime, true)
-		} else {
-			log.Println("Real time price is positive, do not charge battery")
-			steeringRequestBattery(token, hackathonTime, false)
-		}
-
-	}
-
-}
-
-func steerSolar(token string) {
-	for {
-		time.Sleep(time.Second * 5)
-
-		hackathonTime, err := getCurrentHackathonTime(token)
-		if err != nil {
-			log.Println("Error on getting hackathon time. ", err.Error())
-			continue
-		}
-		realTimePrice, err := getRealTimePrice(token, hackathonTime)
-		if err != nil || math.Abs(realTimePrice) < 0.001 {
-			log.Println("###### No real time price available ", err)
-			continue
-		}
-
-		log.Println("Steering Solar...")
-		log.Println("Hackathon Time: ", hackathonTime)
-		log.Println("Real Time Price: ", realTimePrice)
-
-		if realTimePrice < 0 {
-			log.Println("Real time price is negative, stop producing solar energy")
 			steeringRequestSolar(token, hackathonTime, false)
 		} else {
-			log.Println("Real time price is positive, produce solar energy")
+			log.Println("Real time price is positive, do not charge battery and produce solar energy")
+			steeringRequestBattery(token, hackathonTime, false)
 			steeringRequestSolar(token, hackathonTime, true)
 		}
 
+		log.Println("\n\r")
 	}
+
 }

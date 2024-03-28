@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -20,7 +19,7 @@ func makeRequest(baseUrl string, method, path string, headers map[string]string,
 		return nil, err
 	}
 
-	log.Println("Requesting: ", u.String())
+	//log.Println("Requesting: ", u.String())
 
 	for key, value := range headers {
 		req.Header.Set(key, value)

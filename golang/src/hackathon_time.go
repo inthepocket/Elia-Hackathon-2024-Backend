@@ -99,6 +99,15 @@ func add15Mins(timeString string) string {
 	return parsed.Format(time.RFC3339)
 }
 
+func add1Minute(timeString string) string {
+	//log.Println("add20Seconds", timeString)
+	parsed, _ := time.Parse(time.RFC3339, timeString)
+	parsed = parsed.Add(time.Minute)
+	//log.Println(parsed)
+	//log.Println(parsed.Format(time.RFC3339))
+	return parsed.Format(time.RFC3339)
+}
+
 func getNextDay(dateString string) string {
 	parsed, _ := time.Parse("2006-01-02", dateString)
 	parsed = parsed.AddDate(0, 0, 1)

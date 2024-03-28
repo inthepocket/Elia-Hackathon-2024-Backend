@@ -83,7 +83,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/vehicles", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("received GET /vehicles", r)
+		log.Println("received GET /vehicles", r.Header.Get("X-Forwarded-For"))
 
 		// Parse the query parameters
 		query := r.URL.Query()
@@ -140,7 +140,8 @@ func main() {
 	})
 
 	time.Sleep(time.Second * 5)
-	// go steerBattery(accessToken)
+
+	go steerBatteryAndSolar(accessToken)
 	//go steerAssets(accessToken, mongo)
 	go getAndStoreCurrentSessions(accessToken, mongo)
 
