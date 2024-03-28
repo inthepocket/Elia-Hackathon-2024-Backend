@@ -100,6 +100,7 @@ func main() {
 
 			// Write the response
 			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Access-Control-Allow-Origin", "https://itp-elia-hackathon.codemagic.app")
 			if err := json.NewEncoder(w).Encode(vehicleResponse); err != nil {
 				log.Printf("Error encoding response: %s\n", err)
 			}
@@ -129,6 +130,7 @@ func main() {
 
 			// Write the response
 			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Access-Control-Allow-Origin", "https://itp-elia-hackathon.codemagic.app")
 			if err := json.NewEncoder(w).Encode(vehicles); err != nil {
 				log.Printf("Error encoding response: %s\n", err)
 			}
