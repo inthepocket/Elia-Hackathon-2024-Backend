@@ -57,6 +57,7 @@ func getAndStoreCurrentSessions(token string, mongo *mongo.Client) {
 				_, err := coll.UpdateOne(ctx, filter, update, opts)
 				if err != nil {
 					log.Println("Error upserting session: ", err.Error())
+					continue
 				}
 				log.Println("/// boomerise_it")
 				headers := map[string]string{}

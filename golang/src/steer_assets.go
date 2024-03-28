@@ -127,7 +127,7 @@ func steerAssets(token string, mongo *mongo.Client) {
 
 func steerBattery(token string) {
 	for {
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 15)
 
 		hackathonTime, err := getCurrentHackathonTime(token)
 		if err != nil {
@@ -152,13 +152,14 @@ func steerBattery(token string) {
 			steeringRequestBattery(token, hackathonTime, false)
 		}
 
+		log.Println("\n\r")
 	}
 
 }
 
 func steerSolar(token string) {
 	for {
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 15)
 
 		hackathonTime, err := getCurrentHackathonTime(token)
 		if err != nil {
@@ -183,5 +184,6 @@ func steerSolar(token string) {
 			steeringRequestSolar(token, hackathonTime, true)
 		}
 
+		log.Println("\n\r")
 	}
 }
