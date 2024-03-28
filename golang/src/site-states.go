@@ -126,14 +126,14 @@ func steeringRequest(token string, currentTime string, cars []Car, charge bool, 
 	//log.Println("dataRequest", dataRequest)
 	jsonDataRequest, _ := json.Marshal([]SteeringRequestData{dataRequest})
 
-	log.Println("######### REQUEST ############")
-	log.Println(string(jsonDataRequest))
-	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(jsonDataRequest)))
+	// log.Println("######### REQUEST ############")
+	// log.Println(string(jsonDataRequest))
+	_, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(jsonDataRequest)))
 	if err != nil {
 		log.Println("Error on dispatching request. ", err.Error())
 	}
-	log.Println(string(body))
-	log.Println("#####################")
+	// log.Println(string(body))
+	// log.Println("#####################")
 
 }
 
@@ -166,14 +166,14 @@ func steeringRequestBattery(token string, currentTime string, charge bool) {
 
 	params := url.Values{}
 
-	log.Println("######### REQUEST ############")
-	log.Println(string(data))
-	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(data)))
+	// log.Println("######### REQUEST ############")
+	// log.Println(string(data))
+	_, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(data)))
 	if err != nil {
 		log.Println("Error on dispatching request. ", err.Error())
 	}
-	log.Println(string(body))
-	log.Println("#####################")
+	// log.Println(string(body))
+	// log.Println("#####################")
 
 }
 
@@ -206,13 +206,13 @@ func steeringRequestSolar(token string, currentTime string, produce bool) {
 
 	params := url.Values{}
 
-	log.Println("######### REQUEST ############")
-	log.Println(string(data))
-	body, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(data)))
+	// log.Println("######### REQUEST ############")
+	// log.Println(string(data))
+	_, err := makeRequest(os.Getenv("TRAXES_API_BASE_URI"), "POST", "/assets/steering-requests", headers, params, bytes.NewBuffer([]byte(data)))
 	if err != nil {
 		log.Println("Error on dispatching request. ", err.Error())
 	}
-	log.Println(string(body))
-	log.Println("#####################")
+	// log.Println(string(body))
+	// log.Println("#####################")
 
 }

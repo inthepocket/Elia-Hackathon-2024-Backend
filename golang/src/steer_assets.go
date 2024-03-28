@@ -140,20 +140,28 @@ func steerBatteryAndSolar(token string) {
 			continue
 		}
 
+		log.Println("#####################")
 		log.Println("Steering Battery and Solar...")
 		log.Println("Hackathon Time: ", hackathonTime)
 		log.Println("Real Time Price: ", realTimePrice)
 
 		if realTimePrice < 0 {
-			log.Println("Real time price is negative, charge battery and stop producing solar energy")
-			steeringRequestBattery(token, hackathonTime, true)
+			log.Println("Real time price is negative, stop producing solar energy")
 			steeringRequestSolar(token, hackathonTime, false)
 		} else {
-			log.Println("Real time price is positive, do not charge battery and produce solar energy")
-			steeringRequestBattery(token, hackathonTime, false)
+			log.Println("Real time price is positive, produce solar energy")
 			steeringRequestSolar(token, hackathonTime, true)
 		}
 
+		if realTimePrice < 50 {
+			log.Println("Real time price is below 50, charge battery")
+			steeringRequestBattery(token, hackathonTime, true)
+		} else {
+			log.Println("Real time price is above 50, do not charge battery")
+			steeringRequestBattery(token, hackathonTime, false)
+		}
+
+		log.Println("#####################")
 		log.Println("\n\r")
 	}
 
